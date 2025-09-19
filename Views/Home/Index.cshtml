@@ -1,0 +1,184 @@
+﻿@model AcademicManagementSystemV4.Models.ViewModels.DashboardViewModel
+
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="display-4">Welcome, @Model.User.FirstName!</h1>
+        <p class="lead">Here's your academic overview</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@Model.TotalTerms</h4>
+                        <p class="card-text">Total Terms</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@Model.TotalCourses</h4>
+                        <p class="card-text">Total Courses</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@Model.TotalAssessments</h4>
+                        <p class="card-text">Total Assessments</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tasks fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title">@Model.OverallCompletionRate.ToString("F1")%</h4>
+                        <p class="card-text">Completion Rate</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-pie fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Upcoming Assessments
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.UpcomingAssessments.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var assessment in Model.UpcomingAssessments)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">@assessment.Name</h6>
+                                    <p class="mb-1 text-muted">@assessment.Course.CourseNumber</p>
+                                    <small class="text-muted">@assessment.DaysUntilDue days remaining</small>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">@assessment.DueDate.ToString("MM/dd")</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No upcoming assessments in the next 7 days.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-times-circle text-danger me-2"></i>
+                    Overdue Assessments
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.OverdueAssessments.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var assessment in Model.OverdueAssessments)
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">@assessment.Name</h6>
+                                    <p class="mb-1 text-muted">@assessment.Course.CourseNumber</p>
+                                    <small class="text-danger">@Math.Abs(assessment.DaysUntilDue) days overdue</small>
+                                </div>
+                                <span class="badge bg-danger rounded-pill">@assessment.DueDate.ToString("MM/dd")</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No overdue assessments. Great job!</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="fas fa-play-circle text-success me-2"></i>
+                    Active Terms
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.ActiveTerms.Any())
+                {
+                    <div class="row">
+                        @foreach (var term in Model.ActiveTerms)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">@term.Name</h6>
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                @term.StartDate.ToString("MM/dd/yyyy") - @term.EndDate.ToString("MM/dd/yyyy")
+                                            </small>
+                                        </p>
+                                        <p class="card-text">@term.Courses.Count courses</p>
+                                        <a asp-controller="Terms" asp-action="Details" asp-route-id="@term.Id" class="btn btn-primary btn-sm">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No active terms. <a asp-controller="Terms" asp-action="Create">Create a new term</a> to get started.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>

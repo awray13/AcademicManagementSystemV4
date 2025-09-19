@@ -1,0 +1,222 @@
+﻿@model AcademicManagementSystemV4.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row min-vh-100">
+        <!-- Left Panel - Branding/Welcome -->
+        <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-primary text-white">
+            <div class="text-center">
+                <div class="mb-4">
+                    <i class="fas fa-graduation-cap fa-5x mb-3"></i>
+                    <h1 class="display-4 fw-bold">Welcome Back</h1>
+                    <p class="lead">Academic Management System</p>
+                </div>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                        <p class="small">Manage Terms</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-book fa-2x mb-2"></i>
+                        <p class="small">Track Courses</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="fas fa-tasks fa-2x mb-2"></i>
+                        <p class="small">Monitor Progress</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Login Form -->
+        <div class="col-lg-6 d-flex align-items-center">
+            <div class="w-100 px-4 px-lg-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-10 col-xl-8">
+                        <!-- Mobile Header -->
+                        <div class="d-lg-none text-center mb-4">
+                            <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                            <h2 class="h3">Academic Management System</h2>
+                        </div>
+
+                        <!-- Form Header -->
+                        <div class="mb-4">
+                            <h1 class="h2 mb-1">Sign In</h1>
+                            <p class="text-muted">Access your academic dashboard</p>
+                        </div>
+
+                        <!-- Login Form -->
+                        <form asp-action="Login" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" id="loginForm" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <!-- Email Field -->
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label">
+                                    <i class="fas fa-envelope me-1"></i>Email Address
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="Email"
+                                           class="form-control form-control-lg @(ViewData.ModelState["Email"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                           placeholder="Enter your email address"
+                                           autocomplete="email"
+                                           autofocus
+                                           data-bs-toggle="tooltip"
+                                           title="Enter the email address associated with your account" />
+                                    <div class="input-group-text">
+                                        <i class="fas fa-at text-muted"></i>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label">
+                                    <i class="fas fa-lock me-1"></i>Password
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="Password"
+                                           class="form-control form-control-lg @(ViewData.ModelState["Password"]?.Errors.Any() == true ? "is-invalid" : "")"
+                                           placeholder="Enter your password"
+                                           autocomplete="current-password"
+                                           data-bs-toggle="tooltip"
+                                           title="Enter your account password" />
+                                    <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                                        <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
+                            </div>
+
+                            <!-- Remember Me & Forgot Password -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input asp-for="RememberMe"
+                                           class="form-check-input"
+                                           type="checkbox"
+                                           data-bs-toggle="tooltip"
+                                           title="@Model.GetRememberMeDisplayText()" />
+                                    <label asp-for="RememberMe" class="form-check-label">
+                                        Remember me
+                                    </label>
+                                </div>
+                                <a href="#" class="text-decoration-none small" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                                    Forgot password?
+                                </a>
+                            </div>
+
+                            <!-- Error Messages -->
+                            @if (Model.LoginFailed)
+                            {
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    @Model.GetUserFriendlyErrorMessage()
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            }
+
+                            @if (Model.IsLockedOut)
+                            {
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="fas fa-clock me-2"></i>
+                                    @Model.GetUserFriendlyErrorMessage()
+                                </div>
+                            }
+
+                            <!-- Submit Button -->
+                            <div class="d-grid mb-4">
+                                <button type="submit"
+                                        class="btn btn-primary btn-lg"
+                                        id="loginButton"
+                                        @(Model.IsLockedOut ? "disabled" : "")>
+                                    <span class="spinner-border spinner-border-sm d-none me-2" id="loginSpinner" role="status" aria-hidden="true"></span>
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Sign In
+                                </button>
+                            </div>
+
+                            <!-- Divider -->
+                            <div class="text-center mb-4">
+                                <hr class="my-4">
+                                <span class="bg-white px-3 text-muted small">New to Academic Management System?</span>
+                            </div>
+
+                            <!-- Register Link -->
+                            <div class="text-center">
+                                <p class="mb-0">
+                                    Don't have an account?
+                                    <a asp-action="Register" asp-controller="Account"
+                                       asp-route-returnUrl="@ViewData["ReturnUrl"]"
+                                       class="text-decoration-none fw-bold">
+                                        Create Account
+                                    </a>
+                                </p>
+                            </div>
+
+                            <!-- Demo Accounts (Remove in Production) -->
+                            @if (Context.Request.Host.Host.Contains("localhost") || Context.Request.Host.Host.Contains("127.0.0.1"))
+                            {
+                                <div class="mt-4 p-3 bg-light rounded">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="fas fa-info-circle me-1"></i>Demo Accounts
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Student Account:</small>
+                                            <code class="small">student@wgu.edu</code>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted d-block">Password:</small>
+                                            <code class="small">Password123!</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="forgotPasswordModalLabel">
+                    <i class="fas fa-key me-2"></i>Reset Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="forgotPasswordForm">
+                    <div class="mb-3">
+                        <label for="resetEmail" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="resetEmail" placeholder="Enter your email address" required>
+                        <div class="form-text">We'll send you instructions to reset your password.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="sendResetBtn">
+                    <i class="fas fa-paper-plane me-1"></i>Send Reset Instructions
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/account/login.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account/login.css" asp-append-version="true" />
+}
