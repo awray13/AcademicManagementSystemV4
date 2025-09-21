@@ -1,6 +1,7 @@
 using AcademicManagementSystemV4.Data;
 using AcademicManagementSystemV4.Models;
 using AcademicManagementSystemV4.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
+
+// Add authorization with default policy requiring authentication
+// This is causing the login screen to look weird. I'm not sure why just yet
+// so I'll just comment this out until I find the reason.
+//builder.Services.AddAuthorizationBuilder()
+//    .SetFallbackPolicy(new AuthorizationPolicyBuilder()
+//    .RequireAuthenticatedUser()
+//    .Build());
 
 //builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
 //    .AddEntityFrameworkStores<ApplicationDbContext>();

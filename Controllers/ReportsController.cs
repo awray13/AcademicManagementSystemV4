@@ -1,8 +1,12 @@
-﻿using AcademicManagementSystemV4.Models;
+﻿using AcademicManagementSystemV4.Data;
+using AcademicManagementSystemV4.Models;
+using AcademicManagementSystemV4.Models.ViewModels;
 using AcademicManagementSystemV4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
 
 namespace AcademicManagementSystemV4.Controllers;
 
@@ -16,19 +20,22 @@ public class ReportsController : Controller
     private readonly IReportService _reportService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<ReportsController> _logger;
+    private readonly ApplicationDbContext _context;
 
     public ReportsController(
         IReportService reportService,
         UserManager<ApplicationUser> userManager,
-        ILogger<ReportsController> logger)
+        ILogger<ReportsController> logger,
+        ApplicationDbContext context)
     {
         _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     /// <summary>
-    /// Main reports dashboard showing available report types
+    /// GET: Main reports dashboard showing available report types
     /// </summary>
     public async Task<IActionResult> Index()
     {
@@ -38,6 +45,12 @@ public class ReportsController : Controller
 
         try
         {
+            // Get user's terms for the term selection dropdown
+            var userTerms = await _context.Terms
+                .Where(t => t.UserId == user.Id)
+                .OrderByDescending(t => t.StartDate)
+                .ToListAsync();
+
             var viewModel = new ReportsIndexViewModel
             {
                 User = user,
@@ -56,7 +69,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Generates a comprehensive term report with all courses and assessments
+    /// POST: Generates a comprehensive term report with all courses and assessments
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -476,64 +489,4 @@ public class ReportsController : Controller
     #endregion
 }
 
-#region View Models
 
-/// <summary>
-/// View model for the reports index page
-/// </summary>
-public class ReportsIndexViewModel
-{
-    public ApplicationUser User { get; set; } = null!;
-    public List<ReportTypeInfo> AvailableReports { get; set; } = new();
-    public List<RecentReportInfo> RecentReports { get; set; } = new();
-}
-
-/// <summary>
-/// Information about a report type
-/// </summary>
-public class ReportTypeInfo
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Icon { get; set; } = string.Empty;
-    public bool RequiresSelection { get; set; }
-    public string SelectionType { get; set; } = string.Empty;
-    public bool IsCustom { get; set; }
-}
-
-/// <summary>
-/// Information about recently generated reports
-/// </summary>
-public class RecentReportInfo
-{
-    public string Name { get; set; } = string.Empty;
-    public DateTime GeneratedDate { get; set; }
-    public string Size { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// View model for custom report generation
-/// </summary>
-public class CustomReportViewModel
-{
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public bool IncludeTerms { get; set; }
-    public bool IncludeCourses { get; set; }
-    public bool IncludeAssessments { get; set; }
-    public string Format { get; set; } = "txt";
-    public string Title { get; set; } = "Custom Report";
-}
-
-/// <summary>
-/// Report history item
-/// </summary>
-public class ReportHistoryItem
-{
-    public string ReportType { get; set; } = string.Empty;
-    public DateTime GeneratedDate { get; set; }
-    public string FileSize { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-}
-
-#endregion

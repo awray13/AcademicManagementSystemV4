@@ -1,0 +1,339 @@
+﻿@model AcademicManagementSystemV4.Models.ViewModels.ReportsIndexViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-4">
+            <i class="fas fa-chart-bar text-primary me-2"></i>Reports
+        </h1>
+        <p class="lead text-muted">Generate comprehensive academic reports</p>
+    </div>
+    <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#exportAllModal">
+            <i class="fas fa-download me-1"></i>Export All
+        </button>
+        <a asp-action="History" class="btn btn-outline-secondary">
+            <i class="fas fa-history me-1"></i>History
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-primary bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="text-primary mb-1">@Model.AvailableReports.Count</h4>
+                        <p class="card-text mb-0">Available Reports</p>
+                    </div>
+                    <i class="fas fa-file-alt fa-2x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-success bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="text-success mb-1">@Model.RecentReports.Count</h4>
+                        <p class="card-text mb-0">Recent Downloads</p>
+                    </div>
+                    <i class="fas fa-download fa-2x text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-info bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="text-info mb-1">@Model.UserTerms.Count</h4>
+                        <p class="card-text mb-0">Available Terms</p>
+                    </div>
+                    <i class="fas fa-calendar fa-2x text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-warning bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-warning mb-1">
+                            @if (Model.RecentReports.Any())
+                            {
+                                @Model.RecentReports.First().GeneratedDate.ToString("MMM dd")
+                            }
+                            else
+                            {
+                                <text>Never</text>
+                            }
+                        </h6>
+                        <p class="card-text mb-0">Last Generated</p>
+                    </div>
+                    <i class="fas fa-clock fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Reports -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list me-2"></i>Available Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach (var report in Model.AvailableReports)
+                    {
+                        <div class="col-md-6">
+                            <div class="card h-100 report-card border-0 shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="report-icon-wrapper me-3">
+                                            <i class="@report.Icon fa-2x text-primary"></i>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-bold">@report.Name</h6>
+                                    </div>
+                                    <p class="card-text text-muted flex-grow-1 small">@report.Description</p>
+                                    <div class="mt-auto">
+                                        @if (report.IsCustom)
+                                        {
+                                            <a asp-action="Custom" class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-cog me-1"></i>Configure & Generate
+                                            </a>
+                                        }
+                                        else if (report.RequiresSelection)
+                                        {
+                                            <button type="button" class="btn btn-primary btn-sm w-100"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#termSelectionModal"
+                                                    data-report-type="@report.Name.Replace(" ", "").ToLower()">
+                                                <i class="fas fa-download me-1"></i>Generate Report
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <div class="btn-group w-100" role="group">
+                                                <button type="button" class="btn btn-primary btn-sm flex-fill"
+                                                        onclick="generateReport('@report.Name.Replace(" ", "").ToLower()', null, 'txt')">
+                                                    <i class="fas fa-download me-1"></i>Generate
+                                                </button>
+                                                <button type="button" class="btn btn-outline-primary btn-sm"
+                                                        onclick="previewReport('@report.Name.Replace(" ", "").ToLower()')"
+                                                        title="Preview Report">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Recent Reports -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentReports.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var recent in Model.RecentReports.Take(5))
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-start border-0 px-0">
+                                <div class="me-auto">
+                                    <div class="fw-bold small">@recent.Name</div>
+                                    <small class="text-muted">@recent.Size</small>
+                                </div>
+                                <small class="text-muted">@recent.GeneratedDate.ToString("MMM dd")</small>
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-3">
+                        <a asp-action="History" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-history me-1"></i>View All History
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-file-alt fa-3x mb-3 opacity-50"></i>
+                        <p class="mb-2">No reports generated yet</p>
+                        <small>Generate your first report to get started!</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                            onclick="generateReport('progress', null, 'txt')">
+                        <i class="fas fa-chart-line me-1"></i>Progress Report
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm"
+                            onclick="generateReport('assessment', null, 'txt')">
+                        <i class="fas fa-tasks me-1"></i>Assessment Report
+                    </button>
+                    <a asp-action="Custom" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-cog me-1"></i>Custom Report
+                    </a>
+                    <button type="button" class="btn btn-outline-warning btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#exportAllModal">
+                        <i class="fas fa-download me-1"></i>Export All
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Term Selection Modal -->
+<div class="modal fade" id="termSelectionModal" tabindex="-1" aria-labelledby="termSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termSelectionModalLabel">
+                    <i class="fas fa-calendar me-2"></i>Select Term
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Select a term to generate the detailed report:</p>
+                <select class="form-select" id="termSelector">
+                    <option value="">Choose a term...</option>
+                    @foreach (var term in Model.UserTerms)
+                    {
+                        <option value="@term.Id">@term.Name (@term.StartDate.ToString("yyyy"))</option>
+                    }
+                </select>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Term reports include all courses and assessments for the selected period.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="generateTermReport()">
+                    <i class="fas fa-download me-1"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export All Modal -->
+<div class="modal fade" id="exportAllModal" tabindex="-1" aria-labelledby="exportAllModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exportAllModalLabel">
+                    <i class="fas fa-download me-2"></i>Export All Reports
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Generate a comprehensive report containing all your academic data.</p>
+                <div class="mb-3">
+                    <label for="exportFormat" class="form-label">Output Format:</label>
+                    <select class="form-select" id="exportFormat">
+                        <option value="txt">Text Document (.txt)</option>
+                        <option value="csv">Spreadsheet (.csv)</option>
+                        <option value="json">Data File (.json)</option>
+                    </select>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>This may take a few moments depending on the amount of data.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="exportAllReports()">
+                    <i class="fas fa-download me-1"></i>Export All Reports
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">
+                    <i class="fas fa-eye me-2"></i>Report Preview
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading preview...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Generating preview...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="downloadFromPreview" style="display: none;">
+                    <i class="fas fa-download me-1"></i>Download Full Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/reports/index.js" asp-append-version="true"></script>
+    <script>
+        // Expose necessary variables to the external script
+        window.reportsConfig = {
+            previewUrl: '@Url.Action("PreviewReport")',
+            baseReportsUrl: '@Url.Action("Index")'
+        };
+    </script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/reports/index.css" asp-append-version="true" />
+}
+
+<!-- Add anti-forgery token for AJAX requests -->
+@Html.AntiForgeryToken()

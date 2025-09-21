@@ -1,4 +1,4 @@
-namespace AcademicManagementSystemV4.Models
+namespace AcademicManagementSystemV4.Models.ViewModels
 {
     public class ErrorViewModel
     {

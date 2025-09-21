@@ -160,7 +160,6 @@ public class LoginViewModel
             IsLockedOut = IsLockedOut,
             LockoutTimeRemaining = LockoutTimeRemaining,
             RequiresTwoFactor = RequiresTwoFactor
-            // Note: Password and ErrorMessage are intentionally excluded
         };
     }
 

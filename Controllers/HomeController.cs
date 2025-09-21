@@ -48,9 +48,21 @@ public class HomeController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while building dashboard");
-            TempData["Error"] = "An error occurred while loading your dashboard.";
-            return View(new DashboardViewModel { User = await _userManager.GetUserAsync(User) });
+            _logger.LogError(ex, "Error occurred while building dashboard for user {UserId}", _userManager.GetUserId(User));
+            TempData["Error"] = "An error occurred while loading your dashboard. Please try again.";
+            
+            // Return a basic view model with user data only
+            var fallbackViewModel = new DashboardViewModel();
+            try
+            {
+                fallbackViewModel.User = await _userManager.GetUserAsync(User) ?? new ApplicationUser();
+            }
+            catch
+            {
+                fallbackViewModel.User = new ApplicationUser { FirstName = "User" };
+            }
+            
+            return View(fallbackViewModel);
         }
     }
 
@@ -87,44 +99,64 @@ public class HomeController : Controller
             User = user
         };
 
-        // Get active terms (terms that are currently running)
-        viewModel.ActiveTerms = await _context.Terms
-            .Where(t => t.UserId == user.Id &&
-                       t.StartDate <= DateTime.Now &&
-                       t.EndDate >= DateTime.Now)
-            .Include(t => t.Courses)
-            .OrderByDescending(t => t.StartDate)
-            .ToListAsync();
+        try
+        {
+            // Get active terms (terms that are currently running)
+            viewModel.ActiveTerms = await _context.Terms
+                .Where(t => t.UserId == user.Id &&
+                           t.StartDate <= DateTime.Now &&
+                           t.EndDate >= DateTime.Now)
+                .Include(t => t.Courses)
+                .OrderByDescending(t => t.StartDate)
+                .ToListAsync();
 
-        // Get upcoming assessments (next 7 days)
-        var upcomingDate = DateTime.Now.AddDays(7);
-        viewModel.UpcomingAssessments = await _context.Assessments
-            .Include(a => a.Course)
-            .Where(a => a.Course.Term.UserId == user.Id &&
-                       a.DueDate >= DateTime.Now &&
-                       a.DueDate <= upcomingDate &&
-                       a.Status != AssessmentStatus.Completed)
-            .OrderBy(a => a.DueDate)
-            .Take(5)
-            .ToListAsync();
+            _logger.LogDebug("Found {Count} active terms for user {UserId}", viewModel.ActiveTerms.Count, user.Id);
 
-        // Get overdue assessments
-        viewModel.OverdueAssessments = await _context.Assessments
-            .Include(a => a.Course)
-            .Where(a => a.Course.Term.UserId == user.Id && a.IsOverdue)
-            .OrderBy(a => a.DueDate)
-            .Take(5)
-            .ToListAsync();
+            // Get upcoming assessments (next 7 days) - simplified query
+            var upcomingDate = DateTime.Now.AddDays(7);
+            viewModel.UpcomingAssessments = await _context.Assessments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Term)
+                .Where(a => a.Course.Term.UserId == user.Id &&
+                           a.DueDate >= DateTime.Now &&
+                           a.DueDate <= upcomingDate &&
+                           a.Status != AssessmentStatus.Completed)
+                .OrderBy(a => a.DueDate)
+                .Take(5)
+                .ToListAsync();
 
-        // Get in-progress courses
-        viewModel.InProgressCourses = await _context.Courses
-            .Include(c => c.Term)
-            .Include(c => c.Assessments)
-            .Where(c => c.Term.UserId == user.Id && c.Status == CourseStatus.InProgress)
-            .ToListAsync();
+            _logger.LogDebug("Found {Count} upcoming assessments for user {UserId}", viewModel.UpcomingAssessments.Count, user.Id);
 
-        // Calculate statistics
-        await CalculateStatisticsAsync(viewModel, user.Id);
+            // Get overdue assessments - use a more explicit query
+            viewModel.OverdueAssessments = await _context.Assessments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Term)
+                .Where(a => a.Course.Term.UserId == user.Id && 
+                           a.DueDate < DateTime.Now &&
+                           a.Status != AssessmentStatus.Completed)
+                .OrderBy(a => a.DueDate)
+                .Take(5)
+                .ToListAsync();
+
+            _logger.LogDebug("Found {Count} overdue assessments for user {UserId}", viewModel.OverdueAssessments.Count, user.Id);
+
+            // Get in-progress courses
+            viewModel.InProgressCourses = await _context.Courses
+                .Include(c => c.Term)
+                .Include(c => c.Assessments)
+                .Where(c => c.Term.UserId == user.Id && c.Status == CourseStatus.InProgress)
+                .ToListAsync();
+
+            _logger.LogDebug("Found {Count} in-progress courses for user {UserId}", viewModel.InProgressCourses.Count, user.Id);
+
+            // Calculate statistics
+            await CalculateStatisticsAsync(viewModel, user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while building dashboard data for user {UserId}", user.Id);
+            // Don't rethrow - return partial data
+        }
 
         return viewModel;
     }
@@ -134,21 +166,39 @@ public class HomeController : Controller
     /// </summary>
     private async Task CalculateStatisticsAsync(DashboardViewModel viewModel, string userId)
     {
-        viewModel.TotalTerms = await _context.Terms.CountAsync(t => t.UserId == userId);
+        try
+        {
+            viewModel.TotalTerms = await _context.Terms.CountAsync(t => t.UserId == userId);
 
-        viewModel.TotalCourses = await _context.Courses
-            .CountAsync(c => c.Term.UserId == userId);
+            viewModel.TotalCourses = await _context.Courses
+                .Where(c => c.Term.UserId == userId)
+                .CountAsync();
 
-        viewModel.TotalAssessments = await _context.Assessments
-            .CountAsync(a => a.Course.Term.UserId == userId);
+            viewModel.TotalAssessments = await _context.Assessments
+                .Where(a => a.Course.Term.UserId == userId)
+                .CountAsync();
 
-        var completedAssessments = await _context.Assessments
-            .CountAsync(a => a.Course.Term.UserId == userId &&
-                           a.Status == AssessmentStatus.Completed);
+            var completedAssessments = await _context.Assessments
+                .Where(a => a.Course.Term.UserId == userId &&
+                           a.Status == AssessmentStatus.Completed)
+                .CountAsync();
 
-        viewModel.OverallCompletionRate = viewModel.TotalAssessments > 0
-            ? Math.Round((double)completedAssessments / viewModel.TotalAssessments * 100, 1)
-            : 0;
+            viewModel.OverallCompletionRate = viewModel.TotalAssessments > 0
+                ? Math.Round((double)completedAssessments / viewModel.TotalAssessments * 100, 1)
+                : 0;
+
+            _logger.LogDebug("Statistics calculated for user {UserId}: Terms={Terms}, Courses={Courses}, Assessments={Assessments}, CompletionRate={Rate}%", 
+                userId, viewModel.TotalTerms, viewModel.TotalCourses, viewModel.TotalAssessments, viewModel.OverallCompletionRate);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error calculating statistics for user {UserId}", userId);
+            // Set default values on error
+            viewModel.TotalTerms = 0;
+            viewModel.TotalCourses = 0;
+            viewModel.TotalAssessments = 0;
+            viewModel.OverallCompletionRate = 0;
+        }
     }
 
     /// <summary>
@@ -168,7 +218,7 @@ public class HomeController : Controller
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while refreshing dashboard");
+            _logger.LogError(ex, "Error occurred while refreshing dashboard for user {UserId}", _userManager.GetUserId(User));
             return Json(new { success = false, message = "Failed to refresh dashboard" });
         }
     }
