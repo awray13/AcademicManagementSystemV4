@@ -1,0 +1,22 @@
+﻿.report-row:hover {
+    background-color: rgba(0,123,255,0.05);
+}
+
+.report-type-icon {
+    width: 24px;
+    text-align: center;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}

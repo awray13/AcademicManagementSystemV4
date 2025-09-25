@@ -1,0 +1,234 @@
+﻿@model AcademicManagementSystemV4.Models.ViewModels.CustomReportViewModel
+@{
+    ViewData["Title"] = "Custom Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-4">
+            <i class="fas fa-cog text-primary me-2"></i>Custom Report
+        </h1>
+        <p class="lead text-muted">Configure and generate a personalized academic report</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Reports
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-wrench me-2"></i>Report Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Custom" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Basic Settings -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Title" class="form-label fw-bold">
+                                    <i class="fas fa-heading me-1"></i>Report Title
+                                </label>
+                                <input asp-for="Title" class="form-control" placeholder="Enter custom report title" />
+                                <span asp-validation-for="Title" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Format" class="form-label fw-bold">
+                                    <i class="fas fa-file me-1"></i>Output Format
+                                </label>
+                                <select asp-for="Format" class="form-select">
+                                    <option value="txt">Text Document (.txt)</option>
+                                    <option value="csv">Spreadsheet (.csv)</option>
+                                    <option value="json">Data File (.json)</option>
+                                </select>
+                                <span asp-validation-for="Format" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Range -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Date Range
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="StartDate" class="form-label">Start Date</label>
+                                    <input asp-for="StartDate" type="date" class="form-control" />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="EndDate" class="form-label">End Date</label>
+                                    <input asp-for="EndDate" type="date" class="form-control" />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Select the date range for data to include in your report
+                        </div>
+                    </div>
+
+                    <!-- Content Selection -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-3">
+                            <i class="fas fa-list-check me-2"></i>Content to Include
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="IncludeTerms" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IncludeTerms" class="form-check-label">
+                                        <i class="fas fa-calendar text-info me-1"></i>Terms
+                                    </label>
+                                    <div class="form-text small">Include term information and dates</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="IncludeCourses" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IncludeCourses" class="form-check-label">
+                                        <i class="fas fa-book text-success me-1"></i>Courses
+                                    </label>
+                                    <div class="form-text small">Include course details and progress</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input asp-for="IncludeAssessments" class="form-check-input" type="checkbox" />
+                                    <label asp-for="IncludeAssessments" class="form-check-label">
+                                        <i class="fas fa-tasks text-warning me-1"></i>Assessments
+                                    </label>
+                                    <div class="form-text small">Include assessment scores and deadlines</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-outline-info" onclick="previewCustomReport()">
+                                <i class="fas fa-eye me-1"></i>Preview Report
+                            </button>
+                        </div>
+                        <div>
+                            <a asp-action="Index" class="btn btn-secondary me-2">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-download me-1"></i>Generate Report
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Summary -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Configuration Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="fw-bold">Report Title:</h6>
+                    <p class="mb-0" id="summaryTitle">Custom Academic Report</p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="fw-bold">Date Range:</h6>
+                    <p class="mb-0" id="summaryDateRange">
+                        <span id="summaryStartDate">@Model.StartDate.ToString("MMM dd, yyyy")</span> -
+                        <span id="summaryEndDate">@Model.EndDate.ToString("MMM dd, yyyy")</span>
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <h6 class="fw-bold">Content Sections:</h6>
+                    <ul class="list-unstyled mb-0" id="summaryContent">
+                        <li class="@(Model.IncludeTerms ? "text-success" : "text-muted")">
+                            <i class="fas fa-@(Model.IncludeTerms ? "check" : "times") me-1"></i>Terms
+                        </li>
+                        <li class="@(Model.IncludeCourses ? "text-success" : "text-muted")">
+                            <i class="fas fa-@(Model.IncludeCourses ? "check" : "times") me-1"></i>Courses
+                        </li>
+                        <li class="@(Model.IncludeAssessments ? "text-success" : "text-muted")">
+                            <i class="fas fa-@(Model.IncludeAssessments ? "check" : "times") me-1"></i>Assessments
+                        </li>
+                    </ul>
+                </div>
+                <div class="mb-3">
+                    <h6 class="fw-bold">Output Format:</h6>
+                    <p class="mb-0" id="summaryFormat">
+                        <i class="fas fa-file me-1"></i>
+                        <span id="summaryFormatText">Text Document (.txt)</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Templates -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-magic me-2"></i>Quick Templates
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="applyTemplate('comprehensive')">
+                        <i class="fas fa-list me-1"></i>Comprehensive Report
+                    </button>
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="applyTemplate('progress')">
+                        <i class="fas fa-chart-line me-1"></i>Progress Summary
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="applyTemplate('assessments')">
+                        <i class="fas fa-tasks me-1"></i>Assessments Only
+                    </button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="applyTemplate('recent')">
+                        <i class="fas fa-clock me-1"></i>Recent Activity
+                    </button>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        Use these templates to quickly configure common report types.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Validation Summary -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger mt-3">
+        <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
+        <div asp-validation-summary="All" class="mb-0"></div>
+    </div>
+}
+
+ @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/reports/custom.js" asp-append-version="true"></script>
+}
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/reports/custom.css" asp-append-version="true" />
+}

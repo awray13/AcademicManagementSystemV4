@@ -1,0 +1,331 @@
+﻿@model List<AcademicManagementSystemV4.Models.ViewModels.ReportHistoryItem>
+@{
+    ViewData["Title"] = "Report History";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-4">
+            <i class="fas fa-history text-primary me-2"></i>Report History
+        </h1>
+        <p class="lead text-muted">View and manage your generated reports</p>
+    </div>
+    <div class="btn-group" role="group">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Reports
+        </a>
+        <button type="button" class="btn btn-outline-danger" onclick="clearHistory()" 
+                @(Model.Count == 0 ? "disabled" : "")>
+            <i class="fas fa-trash me-1"></i>Clear History
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-primary bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="text-primary mb-1">@Model.Count</h4>
+                        <p class="card-text mb-0">Total Reports</p>
+                    </div>
+                    <i class="fas fa-file-alt fa-2x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-success bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="text-success mb-1">@Model.Count(r => r.Status == "Completed")</h4>
+                        <p class="card-text mb-0">Completed</p>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-info bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-info mb-1">
+                            @if (Model.Any())
+                            {
+                                @Model.OrderByDescending(r => r.GeneratedDate).First().GeneratedDate.ToString("MMM dd")
+                            }
+                            else
+                            {
+                                <text>Never</text>
+                            }
+                        </h6>
+                        <p class="card-text mb-0">Last Generated</p>
+                    </div>
+                    <i class="fas fa-clock fa-2x text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card border-warning bg-light h-100">
+            <div class="card-body text-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-warning mb-1">
+                            @{
+                                var totalSize = Model.Sum(r => ParseFileSize(r.FileSize));
+                                var sizeText = totalSize < 1024 ? $"{totalSize} KB" : $"{totalSize / 1024:F1} MB";
+                            }
+                            @sizeText
+                        </h6>
+                        <p class="card-text mb-0">Total Size</p>
+                    </div>
+                    <i class="fas fa-database fa-2x text-warning"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-3 col-md-6 mb-2">
+                <label class="form-label fw-bold">Search Reports:</label>
+                <input type="text" class="form-control" id="searchInput" placeholder="Search by report type...">
+            </div>
+            <div class="col-lg-2 col-md-6 mb-2">
+                <label class="form-label fw-bold">Status:</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Failed">Failed</option>
+                    <option value="Processing">Processing</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-2">
+                <label class="form-label fw-bold">Date Range:</label>
+                <select class="form-select" id="dateFilter">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">Last 3 Months</option>
+                </select>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-2">
+                <label class="form-label fw-bold">Sort By:</label>
+                <select class="form-select" id="sortFilter">
+                    <option value="date-desc">Date (Newest First)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="type-asc">Report Type (A-Z)</option>
+                    <option value="size-desc">File Size (Largest)</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-2">
+                <button type="button" class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                    <i class="fas fa-times me-1"></i>Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report History Table -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Report Generation History
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="historyTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">
+                                <i class="fas fa-file-alt me-1"></i>Report Type
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-calendar me-1"></i>Generated Date
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-hdd me-1"></i>File Size
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-info-circle me-1"></i>Status
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i class="fas fa-cogs me-1"></i>Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in Model.OrderByDescending(r => r.GeneratedDate))
+                        {
+                            <tr class="report-row" 
+                                data-type="@report.ReportType" 
+                                data-status="@report.Status" 
+                                data-date="@report.GeneratedDate.ToString("yyyy-MM-dd")">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="report-type-icon me-2">
+                                            @switch (report.ReportType.ToLower())
+                                            {
+                                                case "progress report":
+                                                    <i class="fas fa-chart-line text-primary"></i>
+                                                    break;
+                                                case "assessment report":
+                                                    <i class="fas fa-tasks text-success"></i>
+                                                    break;
+                                                case "term report":
+                                                    <i class="fas fa-calendar text-info"></i>
+                                                    break;
+                                                case "custom report":
+                                                    <i class="fas fa-cog text-warning"></i>
+                                                    break;
+                                                default:
+                                                    <i class="fas fa-file-alt text-secondary"></i>
+                                                    break;
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">@report.ReportType</div>
+                                            <small class="text-muted">
+                                                Generated at @report.GeneratedDate.ToString("HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div class="fw-semibold">@report.GeneratedDate.ToString("MMM dd, yyyy")</div>
+                                        <small class="text-muted">@report.GeneratedDate.ToString("dddd")</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fas fa-file-alt me-1"></i>@report.FileSize
+                                    </span>
+                                </td>
+                                <td>
+                                    @switch (report.Status.ToLower())
+                                    {
+                                        case "completed":
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Completed
+                                            </span>
+                                            break;
+                                        case "failed":
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Failed
+                                            </span>
+                                            break;
+                                        case "processing":
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                            </span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-question me-1"></i>@report.Status
+                                            </span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        @if (report.Status == "Completed")
+                                        {
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    title="Download Again" onclick="regenerateReport('@report.ReportType')">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    title="View Details" data-bs-toggle="modal" 
+                                                    data-bs-target="#detailsModal" onclick="showReportDetails('@report.ReportType', '@report.GeneratedDate', '@report.FileSize')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        }
+                                        <button type="button" class="btn btn-outline-danger" 
+                                                title="Remove from History" onclick="removeFromHistory('@report.ReportType', '@report.GeneratedDate')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted mb-3">No Reports Generated Yet</h5>
+                <p class="text-muted mb-4">You haven't generated any reports yet. Start by creating your first report!</p>
+                <a asp-action="Index" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Generate First Report
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Report Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Report Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="reportDetailsContent">
+                <!-- Details will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="downloadFromDetails">
+                    <i class="fas fa-download me-1"></i>Download Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private double ParseFileSize(string sizeString)
+    {
+        // Simple parsing - in real app, would be more sophisticated
+        var parts = sizeString.Replace(" ", "").ToUpper();
+        if (parts.EndsWith("KB"))
+        {
+            return double.Parse(parts.Replace("KB", ""));
+        }
+        else if (parts.EndsWith("MB"))
+        {
+            return double.Parse(parts.Replace("MB", "")) * 1024;
+        }
+        return 0;
+    }
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/reports/history.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/reports/history.csss" asp-append-version="true" />
+}

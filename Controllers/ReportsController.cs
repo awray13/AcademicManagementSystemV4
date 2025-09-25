@@ -55,7 +55,8 @@ public class ReportsController : Controller
             {
                 User = user,
                 AvailableReports = GetAvailableReports(),
-                RecentReports = await GetRecentReportsAsync(user.Id)
+                RecentReports = await GetRecentReportsAsync(user.Id),
+                UserTerms = userTerms
             };
 
             return View(viewModel);
@@ -109,7 +110,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Generates a student progress report showing overall academic performance
+    /// POST: Generates a student progress report showing overall academic performance
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -141,7 +142,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Generates a comprehensive assessment report with deadlines and scores
+    /// POST: Generates a comprehensive assessment report with deadlines and scores
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -173,7 +174,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Generates a custom report based on user-specified criteria
+    /// GET: Generates a custom report based on user-specified criteria
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> Custom()
@@ -188,14 +189,16 @@ public class ReportsController : Controller
             EndDate = DateTime.Today,
             IncludeTerms = true,
             IncludeCourses = true,
-            IncludeAssessments = true
+            IncludeAssessments = true,
+            Format = "txt",
+            Title = "Custom Academic Report"
         };
 
         return View(viewModel);
     }
 
     /// <summary>
-    /// Generates a custom report with user-specified parameters
+    /// POST: Generates a custom report with user-specified parameters
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -232,7 +235,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// AJAX endpoint to preview report content before download
+    /// POST: AJAX endpoint to preview report content before download
     /// </summary>
     [HttpPost]
     public async Task<IActionResult> PreviewReport(string reportType, int? itemId = null)
@@ -276,7 +279,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Gets report generation history for the user
+    /// GET: Gets report generation history for the user
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> History()
@@ -317,7 +320,7 @@ public class ReportsController : Controller
     }
 
     /// <summary>
-    /// Exports all reports in a zip file
+    /// POST: Exports all reports in a zip file
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -455,7 +458,7 @@ public class ReportsController : Controller
     {
         var report = new System.Text.StringBuilder();
 
-        report.AppendLine("CUSTOM ACADEMIC REPORT");
+        report.AppendLine($"{model.Title}");
         report.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
         report.AppendLine($"Date Range: {model.StartDate:yyyy-MM-dd} to {model.EndDate:yyyy-MM-dd}");
         report.AppendLine();

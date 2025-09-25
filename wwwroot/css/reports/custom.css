@@ -1,0 +1,19 @@
+﻿.form-check-label {
+    cursor: pointer;
+}
+
+.card-header {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-warning:hover,
+.btn-outline-info:hover {
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+#summaryContent li {
+    padding: 0.25rem 0;
+}

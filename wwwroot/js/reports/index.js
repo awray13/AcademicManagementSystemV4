@@ -191,17 +191,26 @@ function resetPreviewContent() {
 // Fetch report preview via AJAX
 async function fetchReportPreview(reportType, itemId = null) {
     try {
+        const formData = new FormData();
+        formData.append('reportType', reportType);
+        if (itemId) {
+            formData.append('itemId', itemId);
+        }
+        
+        // Add anti-forgery token to form data, not headers
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (token) {
+            formData.append('__RequestVerificationToken', token.value);
+        }
+
         const response = await fetch('/Reports/PreviewReport', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-            },
-            body: JSON.stringify({
-                reportType: reportType,
-                itemId: itemId
-            })
+            body: formData
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const data = await response.json();
         displayPreviewResult(data, reportType);
