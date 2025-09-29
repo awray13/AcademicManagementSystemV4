@@ -1,0 +1,229 @@
+﻿@using AcademicManagementSystemV4.Models.ViewModels
+@model AcademicManagementSystemV4.Models.ViewModels.SearchResultViewModel
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Search";
+}
+
+<div class="container mt-4">
+    <!-- Search Form -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" asp-controller="Search" asp-action="Index" class="row g-3">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text bg-primary text-white">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control form-control-lg" 
+                               name="query" value="@Model.Query" 
+                               placeholder="Search for terms, courses, assessments, reports..." 
+                               aria-label="Search term" autofocus>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    @if (!string.IsNullOrEmpty(Model.Query))
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        @if (Model.TotalResults > 0)
+                        {
+                            <span>Found @Model.TotalResults results for <strong>'@Model.Query'</strong></span>
+                        }
+                        else
+                        {
+                            <span>No results found for <strong>'@Model.Query'</strong></span>
+                        }
+                    </h5>
+                </div>
+            </div>
+
+            @if (Model.TotalResults > 0)
+            {
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @{
+                            var groupedResults = Model.Results
+                                .GroupBy(r => r.Type)
+                                .OrderBy(g => GetGroupOrder(g.Key));
+                        }
+
+                        @foreach (var group in groupedResults)
+                        {
+                            <div class="p-3 border-bottom">
+                                <h6 class="@GetGroupHeaderClass(group.Key)">
+                                    <i class="@GetGroupIcon(group.Key) me-2"></i>@GetGroupTitle(group.Key) (@group.Count())
+                                </h6>
+                                
+                                @foreach (var item in group)
+                                {
+                                    <a href="@item.Url" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <h6 class="mb-1">@item.Title</h6>
+                                            <span class="badge @GetBadgeClass(item.Type)">@item.Type</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            <p class="mb-1 text-muted small">@item.Description</p>
+                                        }
+                                        <small class="text-muted">@GetDateDisplay(item)</small>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- No Results -->
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5>No results found</h5>
+                    <p class="text-muted">Try using different keywords or check your spelling.</p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Initial Search State -->
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-4x text-primary mb-4"></i>
+            <h3>Search Your Academic Records</h3>
+            <p class="lead text-muted">Enter keywords to find terms, courses, assessments, or reports.</p>
+            <div class="mt-4">
+                <h6>Search Examples:</h6>
+                <div class="row mt-3 justify-content-center">
+                    <div class="col-md-3">
+                        <div class="card mb-3">
+                            <div class="card-body text-start">
+                                <h6>Find Terms</h6>
+                                <p class="small text-muted">Search by term name or description</p>
+                                <a asp-controller="Search" asp-action="Index" asp-route-query="Fall 2023" class="btn btn-sm btn-outline-primary">
+                                    Search "Fall 2023"
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card mb-3">
+                            <div class="card-body text-start">
+                                <h6>Find Courses</h6>
+                                <p class="small text-muted">Search by course name or code</p>
+                                <a asp-controller="Search" asp-action="Index" asp-route-query="CS101" class="btn btn-sm btn-outline-success">
+                                    Search "CS101"
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card mb-3">
+                            <div class="card-body text-start">
+                                <h6>Find Assessments</h6>
+                                <p class="small text-muted">Search by assessment title</p>
+                                <a asp-controller="Search" asp-action="Index" asp-route-query="Midterm" class="btn btn-sm btn-outline-warning">
+                                    Search "Midterm"
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/search/search.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+}
+
+
+@functions {
+    private string GetGroupTitle(string type)
+    {
+        return type switch
+        {
+            "Term" => "Academic Terms",
+            "Course" => "Courses",
+            "Assessment" => "Assessments",
+            "Report" => "Reports",
+            _ => type + "s"
+        };
+    }
+    
+    private string GetGroupHeaderClass(string type)
+    {
+        return type switch
+        {
+            "Term" => "text-primary",
+            "Course" => "text-success",
+            "Assessment" => "text-warning",
+            "Report" => "text-info",
+            _ => "text-secondary"
+        };
+    }
+    
+    private string GetBadgeClass(string type)
+    {
+        return type switch
+        {
+            "Term" => "bg-primary",
+            "Course" => "bg-success",
+            "Assessment" => "bg-warning",
+            "Report" => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+    
+    private string GetGroupIcon(string type)
+    {
+        return type switch
+        {
+            "Term" => "fas fa-calendar-alt",
+            "Course" => "fas fa-book",
+            "Assessment" => "fas fa-tasks",
+            "Report" => "fas fa-file-alt",
+            _ => "fas fa-search"
+        };
+    }
+    
+    private int GetGroupOrder(string type)
+    {
+        return type switch
+        {
+            "Term" => 1,
+            "Course" => 2,
+            "Assessment" => 3,
+            "Report" => 4,
+            _ => 99
+        };
+    }
+    
+    private string GetDateDisplay(SearchResultItem item)
+    {
+        return item.Type switch
+        {
+            "Term" => $"Starts: {item.Date:MMM dd, yyyy}",
+            "Course" => $"Term date: {item.Date:MMM yyyy}",
+            "Assessment" => $"Due: {item.Date:MMM dd, yyyy}",
+            "Report" => "",
+            _ => $"{item.Date:MMM dd, yyyy}"
+        };
+    }
+}

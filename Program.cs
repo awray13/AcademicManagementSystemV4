@@ -99,7 +99,7 @@ using (var scope = app.Services.CreateScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    await context.Database.EnsureCreatedAsync();
+    await context.Database.MigrateAsync();
     await SeedData.Initialize(context, userManager, roleManager);
 }
 

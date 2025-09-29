@@ -1,78 +1,315 @@
-﻿@model AcademicManagementSystemV4.Models.Course
+﻿@using AcademicManagementSystemV4.Models
+@model AcademicManagementSystemV4.Models.Course
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Course Details";
 }
 
-<h1>Details</h1>
+<div class="courses-container">
+    <!-- Header Section -->
+    <div class="courses-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">
+                        <i class="fas fa-book me-3"></i>@Model.Title
+                    </h1>
+                    <p class="lead">
+                        <span class="badge bg-light text-dark border me-2">@Model.CourseNumber</span>
+                        @{
+                            var (badgeClass, statusText) = Model.Status switch
+                            {
+                                CourseStatus.NotStarted => ("bg-secondary", "Not Started"),
+                                CourseStatus.InProgress => ("bg-primary", "In Progress"),
+                                CourseStatus.Completed => ("bg-success", "Completed"),
+                                CourseStatus.Dropped => ("bg-danger", "Dropped"),
+                                _ => ("bg-secondary", "Unknown")
+                            };
+                        }
+                        <span class="badge @badgeClass">@statusText</span>
+                        <span class="ms-2">@Model.StartDate.ToString("MMM dd, yyyy") - @Model.EndDate.ToString("MMM dd, yyyy")</span>
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="btn-group">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Course
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div>
-    <h4>Course</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CourseNumber)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CourseNumber)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreditHours)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreditHours)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StartDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StartDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EndDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EndDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Term)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Term.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
+    <div class="container">
+        <!-- Course Information -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Course Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-hashtag me-2"></i>Course Code:
+                            </div>
+                            <div class="col-md-9">
+								@Model.CourseNumber
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-calendar-alt me-2"></i>Term:
+                            </div>
+                            <div class="col-md-9">
+                                <a asp-controller="Terms" asp-action="Details" asp-route-id="@Model.TermId">
+                                    @Model.Term?.Name
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-graduation-cap me-2"></i>Credits:
+                            </div>
+                            <div class="col-md-9">
+                                @Model.CreditHours
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-calendar-plus me-2"></i>Start Date:
+                            </div>
+                            <div class="col-md-9">
+                                @Model.StartDate.ToString("MMMM dd, yyyy") (@Model.StartDate.ToString("dddd"))
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-calendar-minus me-2"></i>End Date:
+                            </div>
+                            <div class="col-md-9">
+                                @Model.EndDate.ToString("MMMM dd, yyyy") (@Model.EndDate.ToString("dddd"))
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-hourglass-half me-2"></i>Duration:
+                            </div>
+                            <div class="col-md-9">
+                                @((Model.EndDate - Model.StartDate).TotalDays.ToString("F0")) days 
+                                (@Math.Ceiling((Model.EndDate - Model.StartDate).TotalDays / 7).ToString("F0") weeks)
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-3 fw-bold">
+                                <i class="fas fa-align-left me-2"></i>Description:
+                            </div>
+                            <div class="col-md-9">
+                                @if (string.IsNullOrEmpty(Model.Description))
+                                {
+                                    <span class="text-muted fst-italic">No description provided</span>
+                                }
+                                else
+                                {
+                                    @Model.Description
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Course Statistics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stat-item mb-3">
+                            <div class="fw-bold text-primary mb-1">
+                                <i class="fas fa-tasks me-2"></i>Assessments
+                            </div>
+                            <h3>@(Model.Assessments?.Count() ?? 0)</h3>
+                        </div>
+                        
+                        <div class="stat-item mb-3">
+                            <div class="fw-bold text-primary mb-1">
+                                <i class="fas fa-graduation-cap me-2"></i>Credits
+                            </div>
+                            <h3>@Model.CreditHours</h3>
+                        </div>
+                        
+                        <div class="stat-item mb-3">
+                            <div class="fw-bold text-primary mb-1">
+                                <i class="fas fa-clock me-2"></i>Status
+                            </div>
+                            <h3>
+                                <span class="text-@(Model.Status switch {
+                                    CourseStatus.NotStarted => "secondary",
+                                    CourseStatus.InProgress => "primary", 
+                                    CourseStatus.Completed => "success",
+                                    CourseStatus.Dropped => "danger",
+                                    _ => "secondary"
+                                })">@statusText</span>
+                            </h3>
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="fw-bold text-primary mb-1">
+                                <i class="fas fa-calendar me-2"></i>Days Remaining
+                            </div>
+                            <h3>
+                                @if (Model.EndDate < DateTime.Now)
+                                {
+                                    <span class="text-secondary">0</span>
+                                }
+                                else if (Model.EndDate >= DateTime.Now)
+                                {
+                                    <span>@((Model.EndDate - DateTime.Now).TotalDays.ToString("F0"))</span>
+                                }
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assessments List Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks me-2"></i>Course Assessments
+                </h5>
+                <a asp-controller="Assessments" asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus me-1"></i>Add Assessment
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Assessments != null && Model.Assessments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Assessment</th>
+                                    <th>Type</th>
+                                    <th>Due Date</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var assessment in Model.Assessments)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="Assessments" asp-action="Details" asp-route-id="@assessment.Id" class="text-decoration-none">
+                                                @assessment.Name
+                                            </a>
+                                        </td>
+                                        <td>@assessment.Type</td>
+                                        <td>@assessment.DueDate.ToString("MMM dd, yyyy")</td>
+                                        <td>
+                                            @if (assessment.Score.HasValue)
+                                            {
+                                                <span>@assessment.Score.Value.ToString("F1")/@assessment.MaxPoints</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-/@assessment.MaxPoints</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @{
+                                                var (statusBadgeClass, statusDisplayText) = assessment.Status switch
+                                                {
+                                                    AssessmentStatus.NotStarted => ("bg-secondary", "Not Started"),
+                                                    AssessmentStatus.InProgress => ("bg-primary", "In Progress"),
+                                                    AssessmentStatus.Completed => ("bg-success", "Completed"),
+                                                    AssessmentStatus.Submitted => ("bg-info", "Submitted"),
+                                                    AssessmentStatus.Graded => ("bg-success", "Graded"),
+                                                    _ => ("bg-secondary", "Unknown")
+                                                };
+                                            }
+                                            <span class="badge @statusBadgeClass">@statusDisplayText</span>
+                                            
+                                            @if (assessment.IsOverdue)
+                                            {
+                                                <span class="badge bg-danger ms-1">Overdue</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a asp-controller="Assessments" asp-action="Details" asp-route-id="@assessment.Id" 
+                                                   class="btn btn-outline-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-controller="Assessments" asp-action="Edit" asp-route-id="@assessment.Id" 
+                                                   class="btn btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-controller="Assessments" asp-action="Delete" asp-route-id="@assessment.Id" 
+                                                   class="btn btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center p-5">
+                        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                        <h5>No Assessments Yet</h5>
+                        <p class="text-muted">This course doesn't have any assessments assigned yet.</p>
+                        <a asp-controller="Assessments" asp-action="Create" asp-route-courseId="@Model.Id" class="btn btn-primary mt-2">
+                            <i class="fas fa-plus me-2"></i>Add First Assessment
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-between mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Courses
+            </a>
+            <div>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary me-2">
+                    <i class="fas fa-edit me-2"></i>Edit Course
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                    <i class="fas fa-trash me-2"></i>Delete Course
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/courses/courses.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/courses/details.js" asp-append-version="true"></script>
+}

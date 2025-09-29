@@ -85,55 +85,43 @@ function attachEventListeners() {
 function generateReport(reportType, itemId = null, format = 'txt') {
     showLoadingState(true);
     
-    try {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = getReportUrl(reportType);
-        
-        // Add anti-forgery token
-        const token = document.querySelector('input[name="__RequestVerificationToken"]');
-        if (token) {
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token.value;
-            form.appendChild(tokenInput);
-        }
-
-        // Add format parameter
-        const formatInput = document.createElement('input');
-        formatInput.type = 'hidden';
-        formatInput.name = 'format';
-        formatInput.value = format;
-        form.appendChild(formatInput);
-
-        // Add item ID if provided
-        if (itemId) {
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = getIdParameterName(reportType);
-            idInput.value = itemId;
-            form.appendChild(idInput);
-        }
-
-        document.body.appendChild(form);
-        form.submit();
-        
-        // Clean up
-        setTimeout(() => {
-            if (form.parentNode) {
-                document.body.removeChild(form);
-            }
-            showLoadingState(false);
-        }, 1000);
-        
-        showAlert(`Generating ${reportType} report...`, 'info');
-        
-    } catch (error) {
-        console.error('Error generating report:', error);
-        showAlert('Error generating report. Please try again.', 'danger');
-        showLoadingState(false);
+    // Create form data
+    const formData = new FormData();
+    formData.append('format', format);
+    if (itemId) {
+        formData.append(getIdParameterName(reportType), itemId);
     }
+    
+    // Add anti-forgery token
+    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+    if (token) {
+        formData.append('__RequestVerificationToken', token.value);
+    }
+    
+    // Use fetch API
+    fetch(getReportUrl(reportType), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${reportType}_report_${new Date().toISOString().slice(0,10)}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showLoadingState(false);
+        showAlert(`${reportType} report downloaded successfully!`, 'success');
+    })
+    .catch(error => {
+           console.error('Error generating report:', error);
+           showLoadingState(false);
+           showAlert('Error generating report. Please try again.', 'danger');
+       });
 }
 
 // Generate term report

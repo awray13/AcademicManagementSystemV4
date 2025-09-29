@@ -1,71 +1,221 @@
 ﻿@model IEnumerable<AcademicManagementSystemV4.Models.Term>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Academic Terms";
 }
 
-<h1>Index</h1>
+<div class="terms-container">
+    <!-- Header Section -->
+    <div class="terms-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">
+                        <i class="fas fa-calendar-alt me-3"></i>Academic Terms
+                    </h1>
+                    <p class="lead">Manage your academic terms and track your progress</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a asp-action="Create" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Add New Term
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UpdatedAt)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UpdatedAt)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+    <div class="container">
+        <!-- Statistics Cards -->
+        @if (Model.Any())
+        {
+            <div class="row mb-4">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card primary h-100">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stats-number text-primary">@Model.Count()</div>
+                                    <p class="stats-label">Total Terms</p>
+                                </div>
+                                <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card success h-100">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stats-number text-success">@Model.Count(t => t.EndDate < DateTime.Now)</div>
+                                    <p class="stats-label">Completed</p>
+                                </div>
+                                <i class="fas fa-check-circle fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card warning h-100">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stats-number text-warning">@Model.Count(t => t.StartDate <= DateTime.Now && t.EndDate >= DateTime.Now)</div>
+                                    <p class="stats-label">Active</p>
+                                </div>
+                                <i class="fas fa-play-circle fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="card stats-card info h-100">
+                        <div class="card-body text-center">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stats-number text-info">@Model.Count(t => t.StartDate > DateTime.Now)</div>
+                                    <p class="stats-label">Upcoming</p>
+                                </div>
+                                <i class="fas fa-clock fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Terms Table/Cards -->
+        @if (Model.Any())
+        {
+            <div class="card terms-table">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Your Academic Terms
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-tag me-1"></i>@Html.DisplayNameFor(model => model.Name)
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-calendar-plus me-1"></i>Start Date
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-calendar-minus me-1"></i>End Date
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-info-circle me-1"></i>Status
+                                    </th>
+                                    <th>
+                                        <i class="fas fa-graduation-cap me-1"></i>Courses
+                                    </th>
+                                    <th class="text-center">
+                                        <i class="fas fa-cogs me-1"></i>Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderByDescending(t => t.StartDate))
+                                {
+                                    
+                                        var status = item.EndDate < DateTime.Now ? "completed" : 
+                                                   item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now ? "active" : "upcoming";
+                                        var statusText = item.EndDate < DateTime.Now ? "Completed" : 
+                                                       item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now ? "Active" : "Upcoming";
+                                        var badgeClass = item.EndDate < DateTime.Now ? "status-completed" : 
+                                                       item.StartDate <= DateTime.Now && item.EndDate >= DateTime.Now ? "status-active" : "status-upcoming";
+                                    
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3">
+                                                    @if (status == "active")
+                                                    {
+                                                        <i class="fas fa-play-circle text-success fa-lg"></i>
+                                                    }
+                                                    else if (status == "upcoming")
+                                                    {
+                                                        <i class="fas fa-clock text-primary fa-lg"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="fas fa-check-circle text-muted fa-lg"></i>
+                                                    }
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">@Html.DisplayFor(modelItem => item.Name)</div>
+                                                    @if (!string.IsNullOrEmpty(item.Description))
+                                                    {
+                                                        <small class="text-muted">@item.Description.Substring(0, Math.Min(50, item.Description.Length))...</small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">@item.StartDate.ToString("MMM dd, yyyy")</div>
+                                            <small class="text-muted">@item.StartDate.ToString("dddd")</small>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold">@item.EndDate.ToString("MMM dd, yyyy")</div>
+                                            <small class="text-muted">@item.EndDate.ToString("dddd")</small>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge @badgeClass">
+                                                @statusText
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="fas fa-book me-1"></i>@item.Courses?.Count() courses
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-action="Details" asp-route-id="@item.Id" 
+                                                   class="btn btn-outline-info" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@item.Id" 
+                                                   class="btn btn-outline-primary" title="Edit Term">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-action="Delete" asp-route-id="@item.Id" 
+                                                   class="btn btn-outline-danger" title="Delete Term">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>No Terms Yet</h3>
+                        <p>You haven't created any academic terms yet. Start by creating your first term to organize your courses and track your academic progress.</p>
+                        <a asp-action="Create" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Create Your First Term
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/terms/terms.css" asp-append-version="true" />
 }
-    </tbody>
-</table>

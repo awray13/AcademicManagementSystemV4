@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -34,19 +35,27 @@ public class AssessmentsController : Controller
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    // GET: Assessments
+    // Controllers/AssessmentsController.cs - Fixed Index method
+    // Add this method to replace your existing Index method
+
     /// <summary>
     /// Displays all assessments for the current user with filtering and sorting
+    /// FIXED: Proper eager loading and null handling
     /// </summary>
     public async Task<IActionResult> Index(string sortOrder, string statusFilter, string typeFilter,
         string searchString, int? courseFilter, bool showOverdueOnly = false)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
+        {
+            _logger.LogWarning("User not found in AssessmentsController.Index");
             return Challenge();
+        }
 
         try
         {
+            _logger.LogInformation("Loading assessments for user {UserId}", user.Id);
+
             // Set up view data for sorting and filtering
             ViewData["CurrentSort"] = sortOrder;
             ViewData["NameSortParm"] = string.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
@@ -60,11 +69,13 @@ public class AssessmentsController : Controller
             ViewData["CourseFilter"] = courseFilter;
             ViewData["ShowOverdueOnly"] = showOverdueOnly;
 
-            // Start with user's assessments
+            // Start with user's assessments - EXPLICIT EAGER LOADING
             var assessmentsQuery = _context.Assessments
                 .Include(a => a.Course)
                     .ThenInclude(c => c.Term)
-                .Where(a => a.Course.Term.UserId == user.Id);
+                .Where(a => a.Course != null && a.Course.Term != null && a.Course.Term.UserId == user.Id);
+
+            _logger.LogInformation("Base query created for user {UserId}", user.Id);
 
             // Apply filters
             if (!string.IsNullOrEmpty(searchString))
@@ -72,8 +83,8 @@ public class AssessmentsController : Controller
                 assessmentsQuery = assessmentsQuery.Where(a =>
                     a.Name.Contains(searchString) ||
                     a.Description.Contains(searchString) ||
-                    a.Course.CourseNumber.Contains(searchString) ||
-                    a.Course.Title.Contains(searchString));
+                    (a.Course != null && a.Course.CourseNumber.Contains(searchString)) ||
+                    (a.Course != null && a.Course.Title.Contains(searchString)));
             }
 
             if (!string.IsNullOrEmpty(statusFilter) && Enum.TryParse<AssessmentStatus>(statusFilter, out var status))
@@ -93,7 +104,8 @@ public class AssessmentsController : Controller
 
             if (showOverdueOnly)
             {
-                assessmentsQuery = assessmentsQuery.Where(a => a.DueDate < DateTime.Now && a.Status != AssessmentStatus.Completed);
+                assessmentsQuery = assessmentsQuery.Where(a =>
+                    a.DueDate < DateTime.Now && a.Status != AssessmentStatus.Completed);
             }
 
             // Apply sorting
@@ -109,10 +121,22 @@ public class AssessmentsController : Controller
                 _ => assessmentsQuery.OrderBy(a => a.DueDate).ThenBy(a => a.Name)
             };
 
+            // Execute query and get results
             var assessments = await assessmentsQuery.ToListAsync();
+
+            _logger.LogInformation("Retrieved {Count} assessments for user {UserId}", assessments.Count, user.Id);
 
             // Load data for filter dropdowns
             await LoadFilterDataAsync(user.Id);
+
+            // Debug: Log some details about the first few assessments
+            foreach (var assessment in assessments.Take(3))
+            {
+                _logger.LogInformation("Assessment: {Name}, Course: {CourseTitle}, Term: {TermName}",
+                    assessment.Name,
+                    assessment.Course?.Title ?? "NULL",
+                    assessment.Course?.Term?.Name ?? "NULL");
+            }
 
             return View(assessments);
         }
@@ -121,6 +145,86 @@ public class AssessmentsController : Controller
             _logger.LogError(ex, "Error retrieving assessments for user {UserId}", user.Id);
             TempData["Error"] = "An error occurred while loading your assessments.";
             return View(new List<Assessment>());
+        }
+    }
+
+    /// <summary>
+    /// DEBUGGING METHOD - Add this to help diagnose the issue
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> Debug()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Content("User not found");
+
+        try
+        {
+            // Check if user has any terms
+            var termsCount = await _context.Terms.CountAsync(t => t.UserId == user.Id);
+            var coursesCount = await _context.Courses
+                .Include(c => c.Term)
+                .CountAsync(c => c.Term.UserId == user.Id);
+            var assessmentsCount = await _context.Assessments.CountAsync();
+            var userAssessmentsCount = await _context.Assessments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Term)
+                .CountAsync(a => a.Course.Term.UserId == user.Id);
+
+            var debugInfo = $@"
+            Debug Information for User: {user.Email} (ID: {user.Id})
+            
+            Terms Count: {termsCount}
+            Courses Count: {coursesCount}
+            Total Assessments in DB: {assessmentsCount}
+            User's Assessments Count: {userAssessmentsCount}
+            
+            Recent Terms:
+        ";
+
+            var recentTerms = await _context.Terms
+                .Where(t => t.UserId == user.Id)
+                .OrderByDescending(t => t.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            foreach (var term in recentTerms)
+            {
+                debugInfo += $"\n- {term.Name} (ID: {term.Id})";
+            }
+
+            debugInfo += "\n\nRecent Courses:";
+            var recentCourses = await _context.Courses
+                .Include(c => c.Term)
+                .Where(c => c.Term.UserId == user.Id)
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            foreach (var course in recentCourses)
+            {
+                debugInfo += $"\n- {course.Title} (ID: {course.Id}) in Term: {course.Term.Name}";
+            }
+
+            debugInfo += "\n\nRecent Assessments:";
+            var recentAssessments = await _context.Assessments
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Term)
+                .Where(a => a.Course.Term.UserId == user.Id)
+                .OrderByDescending(a => a.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            foreach (var assessment in recentAssessments)
+            {
+                debugInfo += $"\n- {assessment.Name} in {assessment.Course?.Title ?? "NULL COURSE"} (Term: {assessment.Course?.Term?.Name ?? "NULL TERM"})";
+            }
+
+            return Content(debugInfo, "text/plain");
+        }
+        catch (Exception ex)
+        {
+            return Content($"Debug Error: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}", "text/plain");
         }
     }
 

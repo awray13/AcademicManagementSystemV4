@@ -74,7 +74,7 @@ public class ReportsController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> GenerateTermReport(int termId, string format = "txt")
+    public async Task<IActionResult> GenerateTermReport(int termId, string format = "txt", bool isAjax = false)
     {
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
@@ -82,29 +82,25 @@ public class ReportsController : Controller
 
         try
         {
-            _logger.LogInformation("User {UserId} generating term report for term {TermId}", user.Id, termId);
-
             var reportData = await _reportService.GenerateTermReportAsync(termId, user.Id);
-
+            
             if (reportData.Length == 0)
             {
+                if (isAjax) return Json(new { success = false, message = "No data available" });
                 TempData["Error"] = "Term not found or you don't have permission to access it.";
                 return RedirectToAction(nameof(Index));
             }
 
             var fileName = $"TermReport_{termId}_{DateTime.Now:yyyyMMdd_HHmmss}.{format}";
             var contentType = GetContentType(format);
-
-            // Log report generation for audit trail
-            _logger.LogInformation("Term report generated successfully for user {UserId}, term {TermId}, size {Size} bytes",
-                user.Id, termId, reportData.Length);
-
+            
             return File(reportData, contentType, fileName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating term report for user {UserId}, term {TermId}", user.Id, termId);
-            TempData["Error"] = "An error occurred while generating the term report.";
+            _logger.LogError(ex, "Error generating report");
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["Error"] = "An error occurred while generating the report.";
             return RedirectToAction(nameof(Index));
         }
     }

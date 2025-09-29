@@ -1,63 +1,141 @@
 ﻿@model AcademicManagementSystemV4.Models.Term
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Term";
 }
 
-<h1>Edit</h1>
+<div class="terms-container">
+    <!-- Header Section -->
+    <div class="terms-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">
+                        <i class="fas fa-edit me-3"></i>Edit Term
+                    </h1>
+                    <p class="lead">Update information for @Model.Name</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<h4>Term</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+    <div class="container">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-edit me-2"></i>Term Information
+                </h5>
             </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Name" class="form-label fw-bold">
+                                    <i class="fas fa-tag me-1"></i>Term Name
+                                </label>
+                                <input asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-3">
+                                    <label asp-for="StartDate" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-plus me-1"></i>Start Date
+                                    </label>
+                                    <input asp-for="StartDate" class="form-control" type="date" />
+                                    <span asp-validation-for="StartDate" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 form-group mb-3">
+                                    <label asp-for="EndDate" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-minus me-1"></i>End Date
+                                    </label>
+                                    <input asp-for="EndDate" class="form-control" type="date" />
+                                    <span asp-validation-for="EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-1"></i> 
+                                <small>This term has @(Model.Courses?.Count() ?? 0) courses associated with it.</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label asp-for="Description" class="form-label fw-bold">
+                                    <i class="fas fa-align-left me-1"></i>Description
+                                </label>
+                                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Term Status Card -->
+                    <div class="card mb-4 bg-light">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    @if (Model.EndDate < DateTime.Now)
+                                    {
+                                        <i class="fas fa-check-circle text-secondary fa-2x"></i>
+                                    }
+                                    else if (Model.StartDate <= DateTime.Now && Model.EndDate >= DateTime.Now)
+                                    {
+                                        <i class="fas fa-play-circle text-success fa-2x"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-clock text-info fa-2x"></i>
+                                    }
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">Term Status</h5>
+                                    <p class="mb-0">
+                                        @if (Model.EndDate < DateTime.Now)
+                                        {
+                                            <span>This term has been completed</span>
+                                        }
+                                        else if (Model.StartDate <= DateTime.Now && Model.EndDate >= DateTime.Now)
+                                        {
+                                            <span>This term is currently active</span>
+                                        }
+                                        else
+                                        {
+                                            <span>This term is upcoming</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-end mt-4">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class="form-control" asp-items="ViewBag.UserId"></select>
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAt" class="control-label"></label>
-                <input asp-for="UpdatedAt" class="form-control" />
-                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/terms/terms.css" asp-append-version="true" />
+}
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

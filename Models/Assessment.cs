@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AcademicManagementSystemV4.Models;
 
@@ -29,10 +30,14 @@ public class Assessment : BaseEntity
     public int CourseId { get; set; }
 
     // Navigation properties
+    [ForeignKey("CourseId")]
     public virtual Course Course { get; set; } = null!;
 
     // Calculated properties
+    [NotMapped]
     public bool IsOverdue => DateTime.Now > DueDate && Status != AssessmentStatus.Completed;
+
+    [NotMapped]
     public int DaysUntilDue => (DueDate.Date - DateTime.Now.Date).Days;
 }
 

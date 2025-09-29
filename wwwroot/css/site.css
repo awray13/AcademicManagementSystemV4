@@ -29,3 +29,25 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Search results styling */
+.search-highlight {
+    background-color: rgba(255, 230, 0, 0.4);
+    padding: 0.1rem 0.2rem;
+    border-radius: 0.2rem;
+}
+
+.list-group-item-action:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.list-group-item-action .badge {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+}
+
+/* Search input focus styling */
+input[name="query"]:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #86b7fe;
+}

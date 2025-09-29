@@ -28,7 +28,8 @@ public class SeedData
                 Email = "student@wgu.edu",
                 FirstName = "John",
                 LastName = "Student",
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             var result = await userManager.CreateAsync(studentUser, "Password123!");
@@ -36,7 +37,7 @@ public class SeedData
             {
                 await userManager.AddToRoleAsync(studentUser, "Student");
 
-                // Add sample data
+                // Add comprehensive sample data
                 await SeedSampleData(context, studentUser);
             }
         }
@@ -50,7 +51,8 @@ public class SeedData
                 Email = "advisor@wgu.edu",
                 FirstName = "Jane",
                 LastName = "Advisor",
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow
             };
 
             var result = await userManager.CreateAsync(staffUser, "Password123!");
@@ -59,50 +61,305 @@ public class SeedData
                 await userManager.AddToRoleAsync(staffUser, "Staff");
             }
         }
+
+        await context.SaveChangesAsync();
     }
 
     private static async Task SeedSampleData(ApplicationDbContext context, ApplicationUser user)
     {
-        var term = new Term
+        try
         {
-            Name = "Fall 2025",
-            StartDate = new DateTime(2025, 9, 1),
-            EndDate = new DateTime(2025, 12, 15),
-            Description = "Fall semester 2025",
-            UserId = user.Id
-        };
+            // Create multiple terms
+            var terms = new List<Term>
+            {
+                new Term
+                {
+                    Name = "Fall 2024",
+                    StartDate = new DateTime(2024, 9, 1),
+                    EndDate = new DateTime(2024, 12, 15),
+                    Description = "Fall semester 2024",
+                    UserId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Term
+                {
+                    Name = "Spring 2025",
+                    StartDate = new DateTime(2025, 1, 15),
+                    EndDate = new DateTime(2025, 5, 10),
+                    Description = "Spring semester 2025",
+                    UserId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Term
+                {
+                    Name = "Summer 2025",
+                    StartDate = new DateTime(2025, 6, 1),
+                    EndDate = new DateTime(2025, 8, 15),
+                    Description = "Summer semester 2025",
+                    UserId = user.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
 
-        context.Terms.Add(term);
-        await context.SaveChangesAsync();
+            context.Terms.AddRange(terms);
+            await context.SaveChangesAsync();
 
-        var course = new Course
+            // Create courses for each term
+            var courses = new List<Course>
+            {
+                // Fall 2024 courses
+                new Course
+                {
+                    CourseNumber = "CS101",
+                    Title = "Introduction to Computer Science",
+                    Description = "Fundamental concepts of computer science and programming",
+                    CreditHours = 3,
+                    StartDate = new DateTime(2024, 9, 1),
+                    EndDate = new DateTime(2024, 12, 15),
+                    Status = CourseStatus.Completed,
+                    TermId = terms[0].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseNumber = "MATH201",
+                    Title = "Calculus I",
+                    Description = "Introduction to differential and integral calculus",
+                    CreditHours = 4,
+                    StartDate = new DateTime(2024, 9, 1),
+                    EndDate = new DateTime(2024, 12, 15),
+                    Status = CourseStatus.Completed,
+                    TermId = terms[0].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                // Spring 2025 courses
+                new Course
+                {
+                    CourseNumber = "CS201",
+                    Title = "Data Structures and Algorithms",
+                    Description = "Advanced programming concepts and algorithm design",
+                    CreditHours = 3,
+                    StartDate = new DateTime(2025, 1, 15),
+                    EndDate = new DateTime(2025, 5, 10),
+                    Status = CourseStatus.InProgress,
+                    TermId = terms[1].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseNumber = "ENG102",
+                    Title = "Technical Writing",
+                    Description = "Professional and technical communication skills",
+                    CreditHours = 3,
+                    StartDate = new DateTime(2025, 1, 15),
+                    EndDate = new DateTime(2025, 5, 10),
+                    Status = CourseStatus.InProgress,
+                    TermId = terms[1].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                // Summer 2025 courses
+                new Course
+                {
+                    CourseNumber = "CS301",
+                    Title = "Database Systems",
+                    Description = "Database design, implementation, and management",
+                    CreditHours = 3,
+                    StartDate = new DateTime(2025, 6, 1),
+                    EndDate = new DateTime(2025, 8, 15),
+                    Status = CourseStatus.NotStarted,
+                    TermId = terms[2].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
+
+            context.Courses.AddRange(courses);
+            await context.SaveChangesAsync();
+
+            // Create assessments for each course
+            var assessments = new List<Assessment>
+            {
+                // CS101 assessments (completed)
+                new Assessment
+                {
+                    Name = "Programming Assignment 1",
+                    Description = "Basic programming fundamentals",
+                    Type = AssessmentType.Assignment,
+                    DueDate = new DateTime(2024, 9, 30),
+                    Status = AssessmentStatus.Completed,
+                    Score = 95,
+                    MaxPoints = 100,
+                    CourseId = courses[0].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Midterm Exam",
+                    Description = "Comprehensive midterm examination",
+                    Type = AssessmentType.Exam,
+                    DueDate = new DateTime(2024, 10, 15),
+                    Status = AssessmentStatus.Completed,
+                    Score = 88,
+                    MaxPoints = 100,
+                    CourseId = courses[0].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Final Project",
+                    Description = "Capstone programming project",
+                    Type = AssessmentType.Project,
+                    DueDate = new DateTime(2024, 12, 10),
+                    Status = AssessmentStatus.Completed,
+                    Score = 92,
+                    MaxPoints = 100,
+                    CourseId = courses[0].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+
+                // MATH201 assessments (completed)
+                new Assessment
+                {
+                    Name = "Quiz 1 - Limits",
+                    Description = "Understanding limits and continuity",
+                    Type = AssessmentType.Quiz,
+                    DueDate = new DateTime(2024, 9, 20),
+                    Status = AssessmentStatus.Completed,
+                    Score = 85,
+                    MaxPoints = 100,
+                    CourseId = courses[1].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Midterm Exam",
+                    Description = "Derivatives and applications",
+                    Type = AssessmentType.Exam,
+                    DueDate = new DateTime(2024, 10, 25),
+                    Status = AssessmentStatus.Completed,
+                    Score = 90,
+                    MaxPoints = 100,
+                    CourseId = courses[1].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+
+                // CS201 assessments (current/upcoming)
+                new Assessment
+                {
+                    Name = "Algorithm Analysis Project",
+                    Description = "Analyze time and space complexity of algorithms",
+                    Type = AssessmentType.Project,
+                    DueDate = DateTime.Now.AddDays(7),
+                    Status = AssessmentStatus.InProgress,
+                    MaxPoints = 100,
+                    CourseId = courses[2].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Data Structures Quiz",
+                    Description = "Quiz on trees, graphs, and hash tables",
+                    Type = AssessmentType.Quiz,
+                    DueDate = DateTime.Now.AddDays(3),
+                    Status = AssessmentStatus.NotStarted,
+                    MaxPoints = 50,
+                    CourseId = courses[2].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Midterm Exam",
+                    Description = "Comprehensive exam covering all topics so far",
+                    Type = AssessmentType.Exam,
+                    DueDate = DateTime.Now.AddDays(14),
+                    Status = AssessmentStatus.NotStarted,
+                    MaxPoints = 100,
+                    CourseId = courses[2].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+
+                // ENG102 assessments (current/upcoming)
+                new Assessment
+                {
+                    Name = "Technical Report",
+                    Description = "Write a comprehensive technical report",
+                    Type = AssessmentType.Assignment,
+                    DueDate = DateTime.Now.AddDays(10),
+                    Status = AssessmentStatus.InProgress,
+                    MaxPoints = 100,
+                    CourseId = courses[3].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+                new Assessment
+                {
+                    Name = "Presentation",
+                    Description = "Present your technical findings",
+                    Type = AssessmentType.Performance,
+                    DueDate = DateTime.Now.AddDays(21),
+                    Status = AssessmentStatus.NotStarted,
+                    MaxPoints = 100,
+                    CourseId = courses[3].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+
+                // Add some overdue assessments for testing
+                new Assessment
+                {
+                    Name = "Overdue Assignment",
+                    Description = "This assessment is overdue for testing purposes",
+                    Type = AssessmentType.Assignment,
+                    DueDate = DateTime.Now.AddDays(-5),
+                    Status = AssessmentStatus.NotStarted,
+                    MaxPoints = 100,
+                    CourseId = courses[2].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                },
+
+                // CS301 assessments (future)
+                new Assessment
+                {
+                    Name = "Database Design Project",
+                    Description = "Design and implement a database system",
+                    Type = AssessmentType.Project,
+                    DueDate = new DateTime(2025, 7, 15),
+                    Status = AssessmentStatus.NotStarted,
+                    MaxPoints = 100,
+                    CourseId = courses[4].Id,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                }
+            };
+
+            context.Assessments.AddRange(assessments);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"Sample data seeded successfully:");
+            Console.WriteLine($"- Created {terms.Count} terms");
+            Console.WriteLine($"- Created {courses.Count} courses");
+            Console.WriteLine($"- Created {assessments.Count} assessments");
+        }
+        catch (Exception ex)
         {
-            CourseNumber = "CS101",
-            Title = "Introduction to Computer Science",
-            Description = "Fundamental concepts of computer science",
-            CreditHours = 3,
-            StartDate = new DateTime(2025, 9, 1),
-            EndDate = new DateTime(2025, 12, 15),
-            Status = CourseStatus.InProgress,
-            TermId = term.Id
-        };
-
-        context.Courses.Add(course);
-        await context.SaveChangesAsync();
-
-        var assessment = new Assessment
-        {
-            Name = "Midterm Exam",
-            Description = "Comprehensive midterm examination",
-            Type = AssessmentType.Exam,
-            DueDate = new DateTime(2025, 10, 15),
-            Status = AssessmentStatus.NotStarted,
-            MaxPoints = 100,
-            CourseId = course.Id
-        };
-
-        context.Assessments.Add(assessment);
-        await context.SaveChangesAsync();
+            Console.WriteLine($"Error seeding sample data: {ex.Message}");
+            throw;
+        }
     }
 }
-
