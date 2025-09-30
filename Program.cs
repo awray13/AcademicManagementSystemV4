@@ -38,12 +38,44 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure application cookie
+// Configure application cookie with strict session-based settings
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
+
+    // Force session-based authentication - cookies expire when browser closes
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Session timeout
+    options.SlidingExpiration = false; // Don't extend session automatically
+    options.Cookie.IsEssential = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+
+    // Critical: Don't persist cookies across browser sessions
+    options.Cookie.MaxAge = null; // No max age - session cookie only
+    options.Cookie.Expiration = null; // No persistent expiration
+
+    // Security settings
+    options.ReturnUrlParameter = "returnUrl";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        // Clear any existing authentication state
+        context.HttpContext.Session.Clear();
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
+// Add session services for better session management
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(5);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.MaxAge = null; // Session cookie only
 });
 
 // Add authorization with default policy requiring authentication
@@ -79,6 +111,7 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -162,7 +162,7 @@
                 <h5 class="card-title mb-0">
                     <i class="fas fa-book me-2"></i>Term Courses
                 </h5>
-                <a href="#" class="btn btn-sm btn-light">
+                <a asp-controller="Courses" asp-action="Create" asp-route-termId="@Model.Id" class="btn btn-sm btn-light">
                     <i class="fas fa-plus me-1"></i>Add Course
                 </a>
             </div>
@@ -192,13 +192,13 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group btn-group-sm">
-                                                <a href="#" class="btn btn-outline-info">
+                                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.Id" class="btn btn-outline-info" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="#" class="btn btn-outline-primary">
+                                                <a asp-controller="Courses" asp-action="Edit" asp-route-id="@course.Id" class="btn btn-outline-primary" title="Edit Course">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a href="#" class="btn btn-outline-danger">
+                                                <a asp-controller="Courses" asp-action="Delete" asp-route-id="@course.Id" class="btn btn-outline-danger" title="Delete Course">
                                                     <i class="fas fa-trash"></i>
                                                 </a>
                                             </div>
@@ -215,7 +215,7 @@
                         <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
                         <h5>No Courses Yet</h5>
                         <p class="text-muted">This term doesn't have any courses assigned yet.</p>
-                        <a href="#" class="btn btn-primary mt-2">
+                        <a asp-controller="Courses" asp-action="Create" asp-route-termId="@Model.Id" class="btn btn-primary mt-2">
                             <i class="fas fa-plus me-2"></i>Add First Course
                         </a>
                     </div>

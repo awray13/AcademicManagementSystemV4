@@ -1,77 +1,200 @@
 ﻿@model AcademicManagementSystemV4.Models.Course
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Course";
 }
 
-<h1>Create</h1>
-
-<h4>Course</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CourseNumber" class="control-label"></label>
-                <input asp-for="CourseNumber" class="form-control" />
-                <span asp-validation-for="CourseNumber" class="text-danger"></span>
+<div class="courses-container">
+    <!-- Header Section -->
+    <div class="courses-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">
+                        <i class="fas fa-plus-circle me-3"></i>Create New Course
+                    </h1>
+                    <p class="lead text-muted">Add a new course to the academic system</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Courses
+                    </a>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreditHours" class="control-label"></label>
-                <input asp-for="CreditHours" class="form-control" />
-                <span asp-validation-for="CreditHours" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TermId" class="control-label"></label>
-                <select asp-for="TermId" class ="form-control" asp-items="ViewBag.TermId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAt" class="control-label"></label>
-                <input asp-for="UpdatedAt" class="form-control" />
-                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-book me-2"></i>Course Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Create" id="courseCreateForm">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            
+                            <!-- Basic Information Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CourseNumber" class="form-label">
+                                        <i class="fas fa-hashtag me-1"></i>Course Number *
+                                    </label>
+                                    <input asp-for="CourseNumber" class="form-control" placeholder="e.g., CS101" />
+                                    <span asp-validation-for="CourseNumber" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CreditHours" class="form-label">
+                                        <i class="fas fa-clock me-1"></i>Credit Hours *
+                                    </label>
+                                    <input asp-for="CreditHours" class="form-control" type="number" min="1" max="6" placeholder="3" />
+                                    <span asp-validation-for="CreditHours" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label asp-for="Title" class="form-label">
+                                        <i class="fas fa-book me-1"></i>Course Title *
+                                    </label>
+                                    <input asp-for="Title" class="form-control" placeholder="Enter course title" />
+                                    <span asp-validation-for="Title" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label asp-for="Description" class="form-label">
+                                        <i class="fas fa-align-left me-1"></i>Description
+                                    </label>
+                                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter course description (optional)"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Schedule Information Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-calendar-alt me-2"></i>Schedule Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="StartDate" class="form-label">
+                                        <i class="fas fa-calendar-plus me-1"></i>Start Date *
+                                    </label>
+                                    <input asp-for="StartDate" class="form-control" type="date" />
+                                    <span asp-validation-for="StartDate" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="EndDate" class="form-label">
+                                        <i class="fas fa-calendar-minus me-1"></i>End Date *
+                                    </label>
+                                    <input asp-for="EndDate" class="form-control" type="date" />
+                                    <span asp-validation-for="EndDate" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Assignment Information Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-cog me-2"></i>Assignment Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Status" class="form-label">
+                                        <i class="fas fa-flag me-1"></i>Status *
+                                    </label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<CourseStatus>()">
+                                        <option value="">-- Select Status --</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="TermId" class="form-label">
+                                        <i class="fas fa-calendar me-1"></i>Term *
+                                    </label>
+                                    <select asp-for="TermId" class="form-select" asp-items="ViewBag.TermId">
+                                        <option value="">-- Select Term --</option>
+                                    </select>
+                                    <span asp-validation-for="TermId" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Hidden Fields -->
+                            <input type="hidden" asp-for="CreatedAt" />
+                            <input type="hidden" asp-for="UpdatedAt" />
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between border-top pt-3">
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Create Course
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function() {
+            // Auto-set current date for start date if empty
+            if ($('#StartDate').val() === '') {
+                $('#StartDate').val(new Date().toISOString().split('T')[0]);
+            }
+            
+            // Validate end date is after start date
+            $('#StartDate, #EndDate').on('change', function() {
+                const startDate = new Date($('#StartDate').val());
+                const endDate = new Date($('#EndDate').val());
+                
+                if (startDate && endDate && endDate <= startDate) {
+                    $('#EndDate')[0].setCustomValidity('End date must be after start date');
+                } else {
+                    $('#EndDate')[0].setCustomValidity('');
+                }
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .courses-header {
+            background: linear-gradient(135deg, #6c5ce7 0%, #74b9ff 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+        .card-header {
+            border-radius: 10px 10px 0 0 !important;
+        }
+    </style>
 }
