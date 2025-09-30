@@ -593,7 +593,7 @@ public class AssessmentsController : Controller
     }
 
     /// <summary>
-    /// Loads filter dropdown data
+    /// Loads filter dropdown data - SIMPLIFIED VERSION
     /// </summary>
     private async Task LoadFilterDataAsync(string userId)
     {
@@ -603,12 +603,21 @@ public class AssessmentsController : Controller
             .Where(c => c.Term.UserId == userId)
             .Select(c => new {
                 c.Id,
-                DisplayName = $"{c.CourseNumber} - {c.Title}"
+                CourseNumber = c.CourseNumber,
+                Title = c.Title,
+                TermName = c.Term.Name
             })
-            .OrderBy(c => c.DisplayName)
+            .OrderBy(c => c.CourseNumber)
             .ToListAsync();
 
-        ViewBag.Courses = new SelectList(courses, "Id", "DisplayName");
+        // Create display names after query execution
+        var courseSelectItems = courses.Select(c => new SelectListItem
+        {
+            Value = c.Id.ToString(),
+            Text = $"{c.CourseNumber} - {c.Title} ({c.TermName})"
+        }).ToList();
+
+        ViewBag.Courses = courseSelectItems;
 
         // Load assessment statuses
         ViewBag.AssessmentStatuses = new SelectList(

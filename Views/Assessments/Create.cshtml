@@ -1,75 +1,131 @@
 ﻿@model AcademicManagementSystemV4.Models.Assessment
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Assessment";
 }
 
-<h1>Create</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-4">
+                        <i class="fas fa-plus-circle text-primary me-2"></i>Create Assessment
+                    </h1>
+                    <p class="lead text-muted">Add a new assessment to track your academic progress</p>
+                </div>
+                <div>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to List
+                    </a>
+                </div>
+            </div>
 
-<h4>Assessment</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-tasks me-2"></i>Assessment Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="Create">
+                                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Name" class="form-label fw-bold">
+                                            <i class="fas fa-tag me-1"></i>Assessment Name
+                                        </label>
+                                        <input asp-for="Name" class="form-control" placeholder="Enter assessment name" />
+                                        <span asp-validation-for="Name" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="CourseId" class="form-label fw-bold">
+                                            <i class="fas fa-book me-1"></i>Course
+                                        </label>
+                                        <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId">
+                                            <option value="">-- Select Course --</option>
+                                        </select>
+                                        <span asp-validation-for="CourseId" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="Description" class="form-label fw-bold">
+                                        <i class="fas fa-align-left me-1"></i>Description
+                                    </label>
+                                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Enter assessment description (optional)"></textarea>
+                                    <span asp-validation-for="Description" class="text-danger small"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="Type" class="form-label fw-bold">
+                                            <i class="fas fa-list me-1"></i>Type
+                                        </label>
+                                        <select asp-for="Type" class="form-select" asp-items="Html.GetEnumSelectList<AcademicManagementSystemV4.Models.AssessmentType>()">
+                                            <option value="">-- Select Type --</option>
+                                        </select>
+                                        <span asp-validation-for="Type" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="DueDate" class="form-label fw-bold">
+                                            <i class="fas fa-calendar me-1"></i>Due Date
+                                        </label>
+                                        <input asp-for="DueDate" type="datetime-local" class="form-control" />
+                                        <span asp-validation-for="DueDate" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="Status" class="form-label fw-bold">
+                                            <i class="fas fa-flag me-1"></i>Status
+                                        </label>
+                                        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<AcademicManagementSystemV4.Models.AssessmentStatus>()">
+                                            <option value="">-- Select Status --</option>
+                                        </select>
+                                        <span asp-validation-for="Status" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="MaxPoints" class="form-label fw-bold">
+                                            <i class="fas fa-star me-1"></i>Maximum Points
+                                        </label>
+                                        <input asp-for="MaxPoints" type="number" step="0.1" class="form-control" placeholder="Enter maximum points" />
+                                        <span asp-validation-for="MaxPoints" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Score" class="form-label fw-bold">
+                                            <i class="fas fa-trophy me-1"></i>Score (Optional)
+                                        </label>
+                                        <input asp-for="Score" type="number" step="0.1" class="form-control" placeholder="Enter score (if already graded)" />
+                                        <span asp-validation-for="Score" class="text-danger small"></span>
+                                        <div class="form-text">Leave blank if not yet graded</div>
+                                    </div>
+                                </div>
+
+                                <!-- Timestamps (hidden fields) -->
+                                <input asp-for="CreatedAt" type="hidden" />
+                                <input asp-for="UpdatedAt" type="hidden" />
+
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                    <a asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i>Create Assessment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Type" class="control-label"></label>
-                <select asp-for="Type" class="form-control"></select>
-                <span asp-validation-for="Type" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DueDate" class="control-label"></label>
-                <input asp-for="DueDate" class="form-control" />
-                <span asp-validation-for="DueDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Score" class="control-label"></label>
-                <input asp-for="Score" class="form-control" />
-                <span asp-validation-for="Score" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaxPoints" class="control-label"></label>
-                <input asp-for="MaxPoints" class="form-control" />
-                <span asp-validation-for="MaxPoints" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CourseId" class="control-label"></label>
-                <select asp-for="CourseId" class ="form-control" asp-items="ViewBag.CourseId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreatedAt" class="control-label"></label>
-                <input asp-for="CreatedAt" class="form-control" />
-                <span asp-validation-for="CreatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAt" class="control-label"></label>
-                <input asp-for="UpdatedAt" class="form-control" />
-                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

@@ -40,15 +40,15 @@
             <!-- Filters and Search -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <form method="get" class="row g-3">
+                    <form method="get" id="filterForm" class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Search:</label>
-                            <input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
+                            <input type="text" name="searchString" id="searchString" value="@ViewData["CurrentFilter"]"
                                    class="form-control" placeholder="Search assessments...">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Status:</label>
-                            <select name="statusFilter" class="form-select">
+                            <select name="statusFilter" id="statusFilter" class="form-select">
                                 <option value="">All Statuses</option>
                                 @foreach (var status in Enum.GetValues<AcademicManagementSystemV4.Models.AssessmentStatus>())
                                 {
@@ -60,7 +60,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Type:</label>
-                            <select name="typeFilter" class="form-select">
+                            <select name="typeFilter" id="typeFilter" class="form-select">
                                 <option value="">All Types</option>
                                 @foreach (var type in Enum.GetValues<AcademicManagementSystemV4.Models.AssessmentType>())
                                 {
@@ -72,7 +72,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Course:</label>
-                            <select name="courseFilter" class="form-select">
+                            <select name="courseFilter" id="courseFilter" class="form-select">
                                 <option value="">All Courses</option>
                                 @if (ViewBag.Courses != null)
                                 {
@@ -87,7 +87,7 @@
                         </div>
                         <div class="col-md-2">
                             <label class="form-label">Sort:</label>
-                            <select name="sortOrder" class="form-select">
+                            <select name="sortOrder" id="sortOrder" class="form-select">
                                 <option value="" selected="@(string.IsNullOrEmpty(ViewData["CurrentSort"]?.ToString()))">Due Date (Asc)</option>
                                 <option value="date_desc" selected="@(ViewData["CurrentSort"]?.ToString() == "date_desc")">Due Date (Desc)</option>
                                 <option value="name" selected="@(ViewData["CurrentSort"]?.ToString() == "name")">Name (A-Z)</option>
@@ -100,13 +100,16 @@
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
+                        
+                        <!-- Hidden field for showOverdueOnly -->
+                        <input type="hidden" name="showOverdueOnly" id="showOverdueOnlyHidden" value="@(ViewData["ShowOverdueOnly"]?.ToString() == "True" ? "true" : "false")" />
                     </form>
+                    
                     <div class="mt-3">
                         <div class="form-check">
-                            <input type="checkbox" name="showOverdueOnly" value="true" class="form-check-input"
-                                   @(ViewData["ShowOverdueOnly"]?.ToString() == "True" ? "checked" : "")
-                                   onchange="this.form.submit()">
-                            <label class="form-check-label text-danger">
+                            <input type="checkbox" id="showOverdueOnly" class="form-check-input"
+                                   @(ViewData["ShowOverdueOnly"]?.ToString() == "True" ? "checked" : "")>
+                            <label class="form-check-label text-danger" for="showOverdueOnly">
                                 <i class="fas fa-exclamation-triangle me-1"></i>Show overdue only
                             </label>
                         </div>
@@ -130,7 +133,13 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th>
-                                            <a asp-action="Index" asp-route-sortOrder="@ViewData["NameSortParm"]"
+                                            <a asp-action="Index" 
+                                               asp-route-sortOrder="@ViewData["NameSortParm"]"
+                                               asp-route-searchString="@ViewData["CurrentFilter"]"
+                                               asp-route-statusFilter="@ViewData["StatusFilter"]"
+                                               asp-route-typeFilter="@ViewData["TypeFilter"]"
+                                               asp-route-courseFilter="@ViewData["CourseFilter"]"
+                                               asp-route-showOverdueOnly="@ViewData["ShowOverdueOnly"]"
                                                class="text-white text-decoration-none">
                                                 Assessment <i class="fas fa-sort"></i>
                                             </a>
@@ -138,13 +147,25 @@
                                         <th>Course</th>
                                         <th>Type</th>
                                         <th>
-                                            <a asp-action="Index" asp-route-sortOrder="@ViewData["DateSortParm"]"
+                                            <a asp-action="Index" 
+                                               asp-route-sortOrder="@ViewData["DateSortParm"]"
+                                               asp-route-searchString="@ViewData["CurrentFilter"]"
+                                               asp-route-statusFilter="@ViewData["StatusFilter"]"
+                                               asp-route-typeFilter="@ViewData["TypeFilter"]"
+                                               asp-route-courseFilter="@ViewData["CourseFilter"]"
+                                               asp-route-showOverdueOnly="@ViewData["ShowOverdueOnly"]"
                                                class="text-white text-decoration-none">
                                                 Due Date <i class="fas fa-sort"></i>
                                             </a>
                                         </th>
                                         <th>
-                                            <a asp-action="Index" asp-route-sortOrder="@ViewData["StatusSortParm"]"
+                                            <a asp-action="Index" 
+                                               asp-route-sortOrder="@ViewData["StatusSortParm"]"
+                                               asp-route-searchString="@ViewData["CurrentFilter"]"
+                                               asp-route-statusFilter="@ViewData["StatusFilter"]"
+                                               asp-route-typeFilter="@ViewData["TypeFilter"]"
+                                               asp-route-courseFilter="@ViewData["CourseFilter"]"
+                                               asp-route-showOverdueOnly="@ViewData["ShowOverdueOnly"]"
                                                class="text-white text-decoration-none">
                                                 Status <i class="fas fa-sort"></i>
                                             </a>
@@ -275,6 +296,7 @@
                             @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()) ||
                                                     !string.IsNullOrEmpty(ViewData["StatusFilter"]?.ToString()) ||
                                                     !string.IsNullOrEmpty(ViewData["TypeFilter"]?.ToString()) ||
+                                                    !string.IsNullOrEmpty(ViewData["CourseFilter"]?.ToString()) ||
                                                     ViewData["ShowOverdueOnly"]?.ToString() == "True")
                             {
                                 <text>No assessments match your current filters. Try adjusting your search criteria.</text>
@@ -288,6 +310,7 @@
                             @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()) ||
                                                     !string.IsNullOrEmpty(ViewData["StatusFilter"]?.ToString()) ||
                                                     !string.IsNullOrEmpty(ViewData["TypeFilter"]?.ToString()) ||
+                                                    !string.IsNullOrEmpty(ViewData["CourseFilter"]?.ToString()) ||
                                                     ViewData["ShowOverdueOnly"]?.ToString() == "True")
                             {
                                 <a asp-action="Index" class="btn btn-outline-secondary me-2">
@@ -310,11 +333,34 @@
 
 @section Scripts {
     <script>
-        // Auto-submit form when filters change (optional)
         $(document).ready(function() {
+            // Handle checkbox change for overdue filter
+            $('#showOverdueOnly').change(function() {
+                const isChecked = $(this).is(':checked');
+                $('#showOverdueOnlyHidden').val(isChecked ? 'true' : 'false');
+                $('#filterForm').submit();
+            });
+
+            // Auto-submit form when filters change (optional)
             $('#statusFilter, #typeFilter, #courseFilter, #sortOrder').change(function() {
                 // Uncomment the next line to auto-submit on filter change
-                // $(this).closest('form').submit();
+                // $('#filterForm').submit();
+            });
+
+            // Enhanced search functionality
+            let searchTimeout;
+            $('#searchString').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    // Uncomment to enable auto-search
+                    // $('#filterForm').submit();
+                }, 500); // 500ms delay for better UX
+            });
+
+            // Clear filters functionality
+            $('#clearFilters').click(function(e) {
+                e.preventDefault();
+                window.location.href = '@Url.Action("Index")';
             });
         });
     </script>

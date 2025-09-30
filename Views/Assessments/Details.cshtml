@@ -1,78 +1,280 @@
 ﻿@model AcademicManagementSystemV4.Models.Assessment
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Assessment Details";
 }
 
-<h1>Details</h1>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-4">
+                        <i class="fas fa-info-circle text-primary me-2"></i>Assessment Details
+                    </h1>
+                    <p class="lead text-muted">View detailed information about this assessment</p>
+                </div>
+                <div>
+                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to List
+                    </a>
+                </div>
+            </div>
 
-<div>
-    <h4>Assessment</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Type)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Type)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DueDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DueDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Score)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Score)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaxPoints)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaxPoints)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Course)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Course.CourseNumber)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedAt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UpdatedAt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UpdatedAt)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-tasks me-2"></i>@Model.Name
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Assessment Information -->
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-info me-2"></i>Assessment Information
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-tag me-1"></i>Assessment Name
+                                        </label>
+                                        <div class="form-control-plaintext border rounded p-2 bg-light">
+                                            @Html.DisplayFor(model => model.Name)
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-book me-1"></i>Course
+                                        </label>
+                                        <div class="form-control-plaintext border rounded p-2 bg-light">
+                                            @if (Model.Course != null)
+                                            {
+                                                <strong>@Html.DisplayFor(model => model.Course.CourseNumber)</strong>
+                                                @if (!string.IsNullOrEmpty(Model.Course.Title))
+                                                {
+                                                    <br><small class="text-muted">@Model.Course.Title</small>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-danger">Course not found</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-align-left me-1"></i>Description
+                                        </label>
+                                        <div class="form-control-plaintext border rounded p-2 bg-light" style="min-height: 80px;">
+                                            @if (!string.IsNullOrEmpty(Model.Description))
+                                            {
+                                                @Html.DisplayFor(model => model.Description)
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted fst-italic">No description provided</span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-list me-1"></i>Type
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                <span class="badge bg-secondary fs-6">@Html.DisplayFor(model => model.Type)</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-flag me-1"></i>Status
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                @{
+                                                    var statusBadgeClass = Model.Status switch
+                                                    {
+                                                        AcademicManagementSystemV4.Models.AssessmentStatus.Completed => "bg-success",
+                                                        AcademicManagementSystemV4.Models.AssessmentStatus.InProgress => "bg-primary",
+                                                        AcademicManagementSystemV4.Models.AssessmentStatus.Submitted => "bg-info",
+                                                        AcademicManagementSystemV4.Models.AssessmentStatus.Graded => "bg-success",
+                                                        _ => "bg-secondary"
+                                                    };
+                                                }
+                                                <span class="badge @statusBadgeClass fs-6">@Html.DisplayFor(model => model.Status)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Dates and Scoring -->
+                                <div class="col-md-6">
+                                    <h6 class="text-primary mb-3">
+                                        <i class="fas fa-calendar-alt me-2"></i>Dates & Scoring
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">
+                                            <i class="fas fa-calendar me-1"></i>Due Date
+                                        </label>
+                                        <div class="form-control-plaintext border rounded p-2 bg-light">
+                                            @{
+                                                var dueDateClass = Model.DueDate < DateTime.Now ? "text-danger" :
+                                                    (Model.DueDate.Date == DateTime.Today) ? "text-warning" : "";
+                                            }
+                                            <span class="@dueDateClass">
+                                                <strong>@Model.DueDate.ToString("dddd, MMMM dd, yyyy")</strong>
+                                                <br>
+                                                <small>@Model.DueDate.ToString("h:mm tt")</small>
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                @if (Model.DueDate < DateTime.Now)
+                                                {
+                                                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                                                    <span class="text-danger">Overdue</span>
+                                                }
+                                                else if (Model.DueDate.Date == DateTime.Today)
+                                                {
+                                                    <i class="fas fa-clock text-warning"></i>
+                                                    <span class="text-warning">Due today</span>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-calendar-check text-success"></i>
+                                                    <span class="text-success">@((Model.DueDate - DateTime.Now).Days) days remaining</span>
+                                                }
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-star me-1"></i>Maximum Points
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                <strong class="fs-5">@Html.DisplayFor(model => model.MaxPoints)</strong>
+                                                <small class="text-muted">points</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-trophy me-1"></i>Score
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                @if (Model.Score.HasValue)
+                                                {
+                                                    <strong class="fs-5">@Model.Score.Value.ToString("F1")</strong>
+                                                    <small class="text-muted">/@Model.MaxPoints</small>
+                                                    <br>
+                                                    
+                                                        var percentage = (Model.Score.Value / Model.MaxPoints * 100);
+                                                        var percentageClass = percentage >= 90 ? "text-success" :
+                                                                            percentage >= 80 ? "text-info" :
+                                                                            percentage >= 70 ? "text-warning" : "text-danger";
+                                                    
+                                                    <small class="@percentageClass fw-bold">(@percentage.ToString("F1")%)</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted fst-italic">Not graded yet</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Performance Indicator -->
+                                    @if (Model.Score.HasValue)
+                                    {
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-chart-line me-1"></i>Performance
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                @{
+                                                    var percentage = (Model.Score.Value / Model.MaxPoints * 100);
+                                                    var performanceText = percentage >= 90 ? "Excellent" :
+                                                                         percentage >= 80 ? "Good" :
+                                                                         percentage >= 70 ? "Satisfactory" :
+                                                                         percentage >= 60 ? "Needs Improvement" : "Poor";
+                                                    var performanceClass = percentage >= 90 ? "text-success" :
+                                                                          percentage >= 80 ? "text-info" :
+                                                                          percentage >= 70 ? "text-warning" : "text-danger";
+                                                }
+                                                <span class="badge @(percentage >= 90 ? "bg-success" : percentage >= 80 ? "bg-info" : percentage >= 70 ? "bg-warning" : "bg-danger") fs-6">
+                                                    @performanceText
+                                                </span>
+                                                <div class="progress mt-2" style="height: 8px;">
+                                                    <div class="progress-bar @(percentage >= 90 ? "bg-success" : percentage >= 80 ? "bg-info" : percentage >= 70 ? "bg-warning" : "bg-danger")" 
+                                                         role="progressbar" style="width: @percentage%" aria-valuenow="@percentage" aria-valuemin="0" aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Timestamps -->
+                                    <div class="row">
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-calendar-plus me-1"></i>Created
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                <small>
+                                                    @Model.CreatedAt.ToString("MMM dd, yyyy")
+                                                    <br>
+                                                    @Model.CreatedAt.ToString("h:mm tt")
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 mb-3">
+                                            <label class="form-label fw-bold">
+                                                <i class="fas fa-calendar-check me-1"></i>Last Updated
+                                            </label>
+                                            <div class="form-control-plaintext border rounded p-2 bg-light">
+                                                <small>
+                                                    @Model.UpdatedAt.ToString("MMM dd, yyyy")
+                                                    <br>
+                                                    @Model.UpdatedAt.ToString("h:mm tt")
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted">
+                                    <small>
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Assessment ID: @Model.Id
+                                    </small>
+                                </div>
+                                <div>
+                                    <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary">
+                                        <i class="fas fa-edit me-1"></i>Edit Assessment
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i class="fas fa-list me-1"></i>View All Assessments
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
