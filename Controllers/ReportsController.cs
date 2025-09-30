@@ -366,6 +366,92 @@ public class ReportsController : Controller
         }
     }
 
+    /// <summary>
+    /// POST: Gets comprehensive report data for AJAX requests
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> GetReportData()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
+
+        try
+        {
+            _logger.LogInformation("User {UserId} requesting report data", user.Id);
+
+            // Get all user's terms with related data
+            var terms = await _context.Terms
+                .Include(t => t.Courses)
+                    .ThenInclude(c => c.Assessments)
+                .Where(t => t.UserId == user.Id)
+                .OrderByDescending(t => t.StartDate)
+                .ToListAsync();
+
+            // Prepare terms data
+            var termsData = terms.Select(t => new
+            {
+                name = t.Name,
+                startDate = t.StartDate,
+                endDate = t.EndDate,
+                coursesCount = t.Courses.Count,
+                status = GetTermStatus(t),
+                progress = CalculateTermProgress(t)
+            }).ToList();
+
+            // Prepare courses data
+            var coursesData = terms.SelectMany(t => t.Courses).Select(c => new
+            {
+                courseNumber = c.CourseNumber,
+                title = c.Title,
+                termName = c.Term.Name,
+                creditHours = c.CreditHours,
+                status = c.Status.ToString(),
+                completionPercentage = c.CompletionPercentage
+            }).ToList();
+
+            // Prepare assessments data
+            var assessmentsData = terms.SelectMany(t => t.Courses)
+                .SelectMany(c => c.Assessments)
+                .Select(a => new
+                {
+                    name = a.Name,
+                    courseName = a.Course.Title,
+                    type = a.Type.ToString(),
+                    dueDate = a.DueDate,
+                    status = a.Status.ToString(),
+                    score = a.Score
+                }).ToList();
+
+            // Prepare summary data
+            var summaryData = new
+            {
+                totalTerms = terms.Count,
+                totalCourses = coursesData.Count,
+                totalAssessments = assessmentsData.Count,
+                totalCreditHours = coursesData.Sum(c => c.creditHours)
+            };
+
+            var reportData = new
+            {
+                terms = termsData,
+                courses = coursesData,
+                assessments = assessmentsData,
+                summary = summaryData
+            };
+
+            _logger.LogInformation("Report data generated successfully for user {UserId}", user.Id);
+
+            return Json(reportData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating report data for user {UserId}", user.Id);
+            return Json(new { error = "Failed to generate report data" });
+        }
+    }
+
     #region Private Helper Methods
 
     /// <summary>
@@ -483,6 +569,38 @@ public class ReportsController : Controller
 
         // Use Task.Run to make this method truly asynchronous
         return await Task.Run(() => System.Text.Encoding.UTF8.GetBytes(report.ToString()));
+    }
+
+    /// <summary>
+    /// Helper method to determine term status
+    /// </summary>
+    private static string GetTermStatus(Term term)
+    {
+        var now = DateTime.Now;
+        if (now < term.StartDate)
+            return "Upcoming";
+        else if (now > term.EndDate)
+            return "Completed";
+        else
+            return "Active";
+    }
+
+    /// <summary>
+    /// Helper method to calculate term progress
+    /// </summary>
+    private static decimal CalculateTermProgress(Term term)
+    {
+        var now = DateTime.Now;
+        if (now < term.StartDate)
+            return 0;
+        else if (now > term.EndDate)
+            return 100;
+        else
+        {
+            var totalDays = (term.EndDate - term.StartDate).TotalDays;
+            var daysPassed = (now - term.StartDate).TotalDays;
+            return Math.Round((decimal)(daysPassed / totalDays * 100), 1);
+        }
     }
 
     #endregion
