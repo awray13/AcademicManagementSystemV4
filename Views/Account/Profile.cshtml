@@ -1,0 +1,186 @@
+﻿@using AcademicManagementSystemV4.Controllers
+@model ProfileViewModel
+
+@{
+    ViewData["Title"] = "Profile Management";
+}
+
+<div class="profile-container">
+    <!-- Header Section -->
+    <div class="profile-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4">
+                        <i class="fas fa-user-circle me-3"></i>Profile Management
+                    </h1>
+                    <p class="lead text-light">
+                        Manage your account information and settings
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <div class="btn-group">
+                        <a asp-action="ChangePassword" class="btn btn-outline-light">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-light">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Profile Information Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-user me-2"></i>Personal Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Profile" method="post" id="profileForm">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                            
+                            <!-- Basic Information Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="FirstName" class="form-label">
+                                        <i class="fas fa-user me-1"></i>First Name *
+                                    </label>
+                                    <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
+                                    <span asp-validation-for="FirstName" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="LastName" class="form-label">
+                                        <i class="fas fa-user me-1"></i>Last Name *
+                                    </label>
+                                    <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
+                                    <span asp-validation-for="LastName" class="text-danger small"></span>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>Email Address
+                                    </label>
+                                    <input asp-for="Email" class="form-control" readonly />
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Email address cannot be changed. Contact support if you need to update it.
+                                        @if (Model.IsEmailConfirmed)
+                                        {
+                                            <span class="badge bg-success ms-2"><i class="fas fa-check me-1"></i>Verified</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning ms-2"><i class="fas fa-exclamation-triangle me-1"></i>Not Verified</span>
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="PhoneNumber" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Phone Number
+                                    </label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number (optional)" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                </div>
+                            </div>
+
+                            <!-- Account Information Section -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-cog me-2"></i>Account Information
+                                    </h6>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">
+                                        <i class="fas fa-calendar-plus me-1"></i>Member Since
+                                    </label>
+                                    <input value="@Model.CreatedAt.ToString("MMMM dd, yyyy")" class="form-control" readonly />
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">
+                                        <i class="fas fa-user-tag me-1"></i>Account Role
+                                    </label>
+                                    <input value="@string.Join(", ", Model.Roles)" class="form-control" readonly />
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between border-top pt-3">
+                                <div>
+                                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary me-2">
+                                        <i class="fas fa-times me-2"></i>Cancel
+                                    </a>
+                                    <a asp-action="ChangePassword" class="btn btn-outline-warning">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </a>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <a asp-action="ChangePassword" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-key d-block mb-2"></i>
+                                    Change Password
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a asp-controller="Terms" asp-action="Index" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-calendar d-block mb-2"></i>
+                                    View Terms
+                                </a>
+                            </div>
+                            <div class="col-md-4">
+                                <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-chart-bar d-block mb-2"></i>
+                                    View Reports
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/account/profile.js" asp-append-version="true"></script>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account/profile.css" asp-append-version="true" />
+}
+
+

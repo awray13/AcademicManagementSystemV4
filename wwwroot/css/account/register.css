@@ -1,2 +1,46 @@
-﻿body {
+﻿.register-header {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.input-group .btn {
+    border-color: #ced4da;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.alert ul li {
+    margin-bottom: 0.25rem;
+}
+
+    .alert ul li.text-success {
+        color: #198754 !important;
+    }
+
+.btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+}
+
+.modal-body h6 {
+    color: #495057;
+    margin-bottom: 1rem;
 }
