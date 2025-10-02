@@ -33,180 +33,189 @@ The Academic Management System provides a streamlined platform for students and 
 ## 🏗️ Architecture & Design
 
 ### System Architecture
+
+```mermaid
 graph TB 
+    subgraph "Presentation Layer" 
+        V["Razor Pages/Views"] 
+        C["Controllers"] 
+        JS["JavaScript/jQuery"] 
+    end
 
-subgraph "Presentation Layer" 
-    V["Razor Pages/Views"] 
-    C["Controllers"] 
-    JS["JavaScript/jQuery"] 
-end
+    subgraph "Business Logic Layer"
+        S[Services]
+        VM[ViewModels]
+        VAL[Validation]
+    end
 
-subgraph "Business Logic Layer"
-    S[Services]
-    VM[ViewModels]
-    VAL[Validation]
-end
+    subgraph "Data Access Layer"
+        EF[Entity Framework Core]
+        CTX[ApplicationDbContext]
+        REPO[Repository Pattern]
+    end
 
-subgraph "Data Access Layer"
-    EF[Entity Framework Core]
-    CTX[ApplicationDbContext]
-    REPO[Repository Pattern]
-end
+    subgraph "Data Layer"
+        DB[(SQLite Database)]
+        ID[ASP.NET Identity]
+    end
 
-subgraph "Data Layer"
-    DB[(SQLite Database)]
-    ID[ASP.NET Identity]
-end
-
-V --> C
-C --> S
-C --> VM
-S --> EF
-EF --> CTX
-CTX --> DB
-CTX --> ID
-JS --> C
-VAL --> VM
+    V --> C
+    C --> S
+    C --> VM
+    S --> EF
+    EF --> CTX
+    CTX --> DB
+    CTX --> ID
+    JS --> C
+    VAL --> VM
+```
 
 ### Data Flow Architecture
-```
-sequenceDiagram 
-participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
 
-U->>C: Request (Create Term)
-C->>C: Validate User Auth
-C->>S: Process Business Logic
-S->>S: Validate Business Rules
-S->>EF: Create Entity
-EF->>DB: Save Changes
-DB-->>EF: Confirm Save
-EF-->>S: Return Result
-S-->>C: Return ViewModel
-C-->>U: Return View/Redirect
+```mermaid
+sequenceDiagram 
+    participant U as User
+    participant C as Controller
+    participant S as Service
+    participant EF as Entity Framework
+    participant DB as Database
+
+    U->>C: Request (Create Term)
+    C->>C: Validate User Auth
+    C->>S: Process Business Logic
+    S->>S: Validate Business Rules
+    S->>EF: Create Entity
+    EF->>DB: Save Changes
+    DB-->>EF: Confirm Save
+    EF-->>S: Return Result
+    S-->>C: Return ViewModel
+    C-->>U: Return View/Redirect
 ```
 
 ### Domain Model
+
+```mermaid
 classDiagram
+    class ApplicationUser { 
+        +string FirstName 
+        +string LastName
+        +string TimeZone 
+        +DateTime CreatedAt 
+        +DateTime? LastLoginAt 
+        +bool IsProfileComplete 
+        +string FullName 
+        +string Initials 
+        +ICollection~Term~ Terms 
+        +UpdateLastLogin() 
+        +CompleteProfile() 
+        +HasCompleteProfile() bool 
+    }
 
-class ApplicationUser { 
-+string FirstName 
-+string LastName
-+string TimeZone 
-+DateTime CreatedAt 
-+DateTime? LastLoginAt 
-+bool IsProfileComplete 
-+string FullName 
-+string Initials 
-+ICollection~Term~ Terms 
-+UpdateLastLogin() 
-+CompleteProfile() 
-+HasCompleteProfile() bool 
-}
+    class BaseEntity {
+        <<abstract>>
+        +int Id
+        +DateTime CreatedAt
+        +DateTime UpdatedAt
+    }
 
-class BaseEntity {
-    <<abstract>>
-    +int Id
-    +DateTime CreatedAt
-    +DateTime UpdatedAt
-}
+    class Term {
+        +string Name
+        +DateTime StartDate
+        +DateTime EndDate
+        +string Description
+        +string UserId
+        +ApplicationUser User
+        +ICollection~Course~ Courses
+        +bool IsValidDateRange
+    }
 
-class Term {
-    +string Name
-    +DateTime StartDate
-    +DateTime EndDate
-    +string Description
-    +string UserId
-    +ApplicationUser User
-    +ICollection~Course~ Courses
-    +bool IsValidDateRange
-}
+    class Course {
+        +string CourseNumber
+        +string Title
+        +string Description
+        +int CreditHours
+        +DateTime StartDate
+        +DateTime EndDate
+        +CourseStatus Status
+        +int TermId
+        +Term Term
+        +ICollection~Assessment~ Assessments
+        +double CompletionPercentage
+    }
 
-class Course {
-    +string CourseNumber
-    +string Title
-    +string Description
-    +int CreditHours
-    +DateTime StartDate
-    +DateTime EndDate
-    +CourseStatus Status
-    +int TermId
-    +Term Term
-    +ICollection~Assessment~ Assessments
-    +double CompletionPercentage
-}
+    class Assessment {
+        +string Name
+        +string Description
+        +AssessmentType Type
+        +DateTime DueDate
+        +AssessmentStatus Status
+        +double? Score
+        +double MaxPoints
+        +int CourseId
+        +Course Course
+        +bool IsOverdue
+        +int DaysUntilDue
+    }
 
-class Assessment {
-    +string Name
-    +string Description
-    +AssessmentType Type
-    +DateTime DueDate
-    +AssessmentStatus Status
-    +double? Score
-    +double MaxPoints
-    +int CourseId
-    +Course Course
-    +bool IsOverdue
-    +int DaysUntilDue
-}
+    class CourseTemplate {
+        +string CourseNumber
+        +string Title
+        +string Description
+        +int CreditHours
+        +ICollection~AssessmentTemplate~ AssessmentTemplates
+        +string DisplayName
+    }
 
-class CourseTemplate {
-    +string CourseNumber
-    +string Title
-    +string Description
-    +int CreditHours
-    +ICollection~AssessmentTemplate~ AssessmentTemplates
-    +string DisplayName
-}
+    class AssessmentTemplate {
+        +string Name
+        +string Description
+        +AssessmentType Type
+        +double MaxPoints
+        +int DaysFromCourseStart
+        +int CourseTemplateId
+        +CourseTemplate CourseTemplate
+    }
 
-class AssessmentTemplate {
-    +string Name
-    +string Description
-    +AssessmentType Type
-    +double MaxPoints
-    +int DaysFromCourseStart
-    +int CourseTemplateId
-    +CourseTemplate CourseTemplate
-}
+    class CourseStatus {
+        <<enumeration>>
+        NotStarted
+        InProgress
+        Completed
+        Dropped
+    }
 
-class CourseStatus {
-    <<enumeration>>
-    NotStarted
-    InProgress
-    Completed
-    Dropped
-}
+    class AssessmentType {
+        <<enumeration>>
+        Objective
+        Performance
+        Project
+        Exam
+        Quiz
+        Assignment
+    }
 
-class AssessmentType {
-    <<enumeration>>
-    Objective
-    Performance
-    Project
-    Exam
-    Quiz
-    Assignment
-}
+    class AssessmentStatus {
+        <<enumeration>>
+        NotStarted
+        InProgress
+        Completed
+        Submitted
+        Graded
+    }
 
-class AssessmentStatus {
-    <<enumeration>>
-    NotStarted
-    InProgress
-    Completed
-    Submitted
-    Graded
-}
-
-ApplicationUser ||--o{ Term : owns
-Term ||--o{ Course : contains
-Course ||--o{ Assessment : has
-CourseTemplate ||--o{ AssessmentTemplate : defines
-BaseEntity <|-- Term
-BaseEntity <|-- Course
-BaseEntity <|-- Assessment
-BaseEntity <|-- CourseTemplate
-BaseEntity <|-- AssessmentTemplate
-Course --> CourseStatus
-Assessment --> AssessmentType
-Assessment --> AssessmentStatus
+    ApplicationUser ||--o{ Term : owns
+    Term ||--o{ Course : contains
+    Course ||--o{ Assessment : has
+    CourseTemplate ||--o{ AssessmentTemplate : defines
+    BaseEntity <|-- Term
+    BaseEntity <|-- Course
+    BaseEntity <|-- Assessment
+    BaseEntity <|-- CourseTemplate
+    BaseEntity <|-- AssessmentTemplate
+    Course --> CourseStatus
+    Assessment --> AssessmentType
+    Assessment --> AssessmentStatus
+```
 
 ## 🛠️ Technology Stack
 
@@ -234,24 +243,68 @@ Assessment --> AssessmentStatus
 ### Installation & Setup
 
 1. **Clone the repository**
-1. ```git clone https://github.com/awray13/AcademicManagementSystemV4.git cd AcademicManagementSystemV4```
+   ```bash
+   git clone https://github.com/awray13/AcademicManagementSystemV4.git
+   cd AcademicManagementSystemV4
+   ```
+
 2. **Restore NuGet packages**
-1. ```dotnet restore```
+   ```bash
+   dotnet restore
+   ```
+
 3. **Update database connection** (Optional)
-- Edit `appsettings.json` to modify the connection string if needed
-- Default uses SQLite with local file storage
+   - Edit `appsettings.json` to modify the connection string if needed
+   - Default uses SQLite with local file storage
+
 4. **Apply database migrations**
-1. ```dotnet ef database update```
+   ```bash
+   dotnet ef database update
+   ```
+
 5. **Run the application**
-1. ```dotnet run```
+   ```bash
+   dotnet run
+   ```
+
 6. **Access the application**
-- Navigate to `https://localhost:7243` (or the port shown in terminal)
-- Use demo credentials:
-  - **Student**: `student@wgu.edu` / `Password123!`
-  - **Staff**: `advisor@wgu.edu` / `Password123!`
+   - Navigate to `https://localhost:7243` (or the port shown in terminal)
+   - Use demo credentials:
+     - **Student**: `student@wgu.edu` / `Password123!`
+     - **Staff**: `advisor@wgu.edu` / `Password123!`
 
 ## 📁 Project Structure
-AcademicManagementSystemV4/ ├── Controllers/           # MVC controllers for handling requests │   ├── AccountController.cs │   ├── CoursesController.cs │   └── TermsController.cs ├── Data/                 # Database context and configurations │   ├── ApplicationDbContext.cs │   ├── Migrations/ │   └── SeedData.cs ├── Models/               # Data models and view models │   ├── ApplicationUser.cs │   ├── Assessment.cs │   ├── Course.cs │   ├── Term.cs │   └── ViewModels/ ├── Services/             # Business logic services │   └── CourseTemplateService.cs ├── Views/               # Razor pages and layouts │   ├── Account/ │   ├── Courses/ │   ├── Terms/ │   └── Shared/ ├── wwwroot/             # Static files │   ├── css/ │   ├── js/ │   └── lib/ ├── Program.cs           # Application entry point └── appsettings.json     # Configuration settings
+
+```
+AcademicManagementSystemV4/
+├── Controllers/           # MVC controllers for handling requests
+│   ├── AccountController.cs
+│   ├── CoursesController.cs
+│   └── TermsController.cs
+├── Data/                 # Database context and configurations
+│   ├── ApplicationDbContext.cs
+│   ├── Migrations/
+│   └── SeedData.cs
+├── Models/               # Data models and view models
+│   ├── ApplicationUser.cs
+│   ├── Assessment.cs
+│   ├── Course.cs
+│   ├── Term.cs
+│   └── ViewModels/
+├── Services/             # Business logic services
+│   └── CourseTemplateService.cs
+├── Views/               # Razor pages and layouts
+│   ├── Account/
+│   ├── Courses/
+│   ├── Terms/
+│   └── Shared/
+├── wwwroot/             # Static files
+│   ├── css/
+│   ├── js/
+│   └── lib/
+├── Program.cs           # Application entry point
+└── appsettings.json     # Configuration settings
+```
 
 ## 🔧 Configuration
 
@@ -259,7 +312,13 @@ AcademicManagementSystemV4/ ├── Controllers/           # MVC controllers f
 
 The application uses SQLite by default with the following connection string:
 
-```{ "ConnectionStrings": { "DefaultConnection": "Data Source=academic_management.db" } }```
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Data Source=academic_management.db"
+  }
+}
+```
 
 ### Identity Configuration
 
@@ -312,7 +371,9 @@ The application includes comprehensive seed data:
 ## 🧪 Testing
 
 ### Running Tests
-```dotnet test```
+```bash
+dotnet test
+```
 
 ### Test Coverage
 - Unit tests for business logic
@@ -322,13 +383,22 @@ The application includes comprehensive seed data:
 ## 🚀 Deployment
 
 ### Development
-```dotnet run --environment Development```
+```bash
+dotnet run --environment Development
+```
+
 ### Production
-```dotnet publish -c Release -o ./publish```
+```bash
+dotnet publish -c Release -o ./publish
+```
 
 ### Docker Support
-```FROM mcr.microsoft.com/dotnet/aspnet:9.0 COPY bin/Release/net9.0/publish/ App/ WORKDIR /App ENTRYPOINT ["dotnet", "AcademicManagementSystemV4.dll"]```
-
+```dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+COPY bin/Release/net9.0/publish/ App/
+WORKDIR /App
+ENTRYPOINT ["dotnet", "AcademicManagementSystemV4.dll"]
+```
 
 ## 🤝 Contributing
 
