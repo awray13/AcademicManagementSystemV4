@@ -69,7 +69,8 @@ JS --> C
 VAL --> VM
 
 ### Data Flow Architecture
-sequenceDiagram participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
+```sequenceDiagram participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
+
 U->>C: Request (Create Term)
 C->>C: Validate User Auth
 C->>S: Process Business Logic
@@ -80,6 +81,7 @@ DB-->>EF: Confirm Save
 EF-->>S: Return Result
 S-->>C: Return ViewModel
 C-->>U: Return View/Redirect
+```
 
 ### Domain Model
 classDiagram class ApplicationUser { +string FirstName +string LastName +string TimeZone +DateTime CreatedAt +DateTime? LastLoginAt +bool IsProfileComplete +string FullName +string Initials +ICollection~Term~ Terms +UpdateLastLogin() +CompleteProfile() +HasCompleteProfile() bool }
