@@ -7,7 +7,7 @@ namespace AcademicManagementSystemV4.Models;
 /// Extended user model for the Academic Management System
 /// Inherits from IdentityUser and adds custom properties for academic tracking
 /// </summary>
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser // <- INHERITANCE
 {
     /// <summary>
     /// User's first name

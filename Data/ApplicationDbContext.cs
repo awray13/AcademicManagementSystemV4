@@ -15,6 +15,8 @@ namespace AcademicManagementSystemV4.Data
         public DbSet<Term> Terms { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Assessment> Assessments { get; set; }
+        public DbSet<CourseTemplate> CourseTemplates { get; set; }
+        public DbSet<AssessmentTemplate> AssessmentTemplates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

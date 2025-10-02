@@ -112,6 +112,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<ICourseTemplateService, CourseTemplateService>();
 
 var app = builder.Build();
 

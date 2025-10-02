@@ -2,6 +2,13 @@
 
 namespace AcademicManagementSystemV4.Models;
 
+/// <summary>
+/// Represents an academic course, including its identifying information, schedule, status, and related assessments.
+/// </summary>
+/// <remarks>A course includes details such as its number, title, description, credit hours, and the term in which
+/// it is offered. It also tracks the course's start and end dates, current status, and associated assessments. The
+/// class provides navigation properties for related entities, enabling integration with term and assessment data. This
+/// type is typically used in educational management systems to model course offerings and their progress.</remarks>
 public class Course : BaseEntity
 {
     [Required]

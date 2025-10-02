@@ -1,5 +1,6 @@
 ﻿using AcademicManagementSystemV4.Data;
 using AcademicManagementSystemV4.Models;
+using AcademicManagementSystemV4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,7 @@ namespace AcademicManagementSystemV4.Controllers;
 [Authorize]
 public class CoursesController : Controller
 {
+    private readonly ICourseTemplateService _courseTemplateService;
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<CoursesController> _logger;
@@ -27,11 +29,13 @@ public class CoursesController : Controller
     public CoursesController(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        ILogger<CoursesController> logger)
+        ILogger<CoursesController> logger,
+        ICourseTemplateService courseTemplateService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _courseTemplateService = courseTemplateService ?? throw new ArgumentNullException(nameof(courseTemplateService));
     }
 
     // GET: Courses
@@ -147,14 +151,13 @@ public class CoursesController : Controller
         if (user == null)
             return Challenge();
 
-        await LoadTermsSelectListAsync(user.Id);
-
+        await LoadCreateFormDataAsync(user.Id);
+        
         var model = new Course
         {
             StartDate = DateTime.Today,
-            EndDate = DateTime.Today.AddMonths(3),
-            Status = CourseStatus.NotStarted,
-            CreditHours = 3
+            EndDate = DateTime.Today.AddDays(120), // Default 4-month course
+            Status = CourseStatus.NotStarted
         };
 
         return View(model);
@@ -200,6 +203,64 @@ public class CoursesController : Controller
 
         await LoadTermsSelectListAsync(user.Id);
         return View(course);
+    }
+
+    // POST: Courses/CreateFromTemplate
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFromTemplate(int courseTemplateId, int termId, DateTime startDate, DateTime endDate)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Challenge();
+
+        try
+        {
+            // Validate that the term belongs to the user
+            var term = await _context.Terms
+                .FirstOrDefaultAsync(t => t.Id == termId && t.UserId == user.Id);
+            
+            if (term == null)
+            {
+                TempData["Error"] = "Invalid term selected.";
+                return RedirectToAction(nameof(Create));
+            }
+
+            // Create course from template
+            var course = await _courseTemplateService.CreateCourseFromTemplateAsync(
+                courseTemplateId, termId, startDate, endDate);
+
+            _context.Courses.Add(course);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {UserId} created course {CourseTitle} from template with {AssessmentCount} assessments", 
+                user.Id, course.Title, course.Assessments.Count);
+
+            TempData["Success"] = $"Course '{course.Title}' created successfully with {course.Assessments.Count} assessments!";
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating course from template for user {UserId}", user.Id);
+            TempData["Error"] = "An error occurred while creating the course.";
+            return RedirectToAction(nameof(Create));
+        }
+    }
+
+    private async Task LoadCreateFormDataAsync(string userId)
+    {
+        // Load terms
+        var terms = await _context.Terms
+            .Where(t => t.UserId == userId)
+            .OrderBy(t => t.StartDate)
+            .Select(t => new { t.Id, t.Name })
+            .ToListAsync();
+
+        ViewData["TermId"] = new SelectList(terms, "Id", "Name");
+
+        // Load course templates
+        var courseTemplates = await _courseTemplateService.GetAllTemplatesAsync();
+        ViewBag.CourseTemplates = new SelectList(courseTemplates, "Id", "DisplayName");
     }
 
     // GET: Courses/Edit/5
@@ -564,5 +625,33 @@ public class CoursesController : Controller
         };
 
         return Json(progress);
+    }
+
+    /// <summary>
+    /// AJAX endpoint to preview a course template
+    /// </summary>
+    [HttpGet("/api/course-templates/{id}/preview")]
+    public async Task<IActionResult> GetTemplatePreview(int id)
+    {
+        var template = await _courseTemplateService.GetTemplateWithAssessmentsAsync(id);
+        if (template == null)
+            return NotFound();
+
+        var preview = new
+        {
+            courseNumber = template.CourseNumber,
+            title = template.Title,
+            description = template.Description,
+            creditHours = template.CreditHours,
+            assessments = template.AssessmentTemplates.Select(at => new
+            {
+                name = at.Name,
+                type = at.Type.ToString(),
+                maxPoints = at.MaxPoints,
+                daysFromStart = at.DaysFromCourseStart
+            }).OrderBy(a => a.daysFromStart)
+        };
+
+        return Json(preview);
     }
 }

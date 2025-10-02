@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using AcademicManagementSystemV4.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademicManagementSystemV4.Data;
 
@@ -63,6 +64,7 @@ public class SeedData
         }
 
         await context.SaveChangesAsync();
+        await SeedCourseTemplates(context);
     }
 
     private static async Task SeedSampleData(ApplicationDbContext context, ApplicationUser user)
@@ -361,5 +363,170 @@ public class SeedData
             Console.WriteLine($"Error seeding sample data: {ex.Message}");
             throw;
         }
+    }
+
+    private static async Task SeedCourseTemplates(ApplicationDbContext context)
+    {
+        // Check if course templates already exist
+        if (await context.CourseTemplates.AnyAsync())
+            return;
+
+        var courseTemplates = new List<CourseTemplate>
+        {
+            new CourseTemplate
+            {
+                CourseNumber = "CS101",
+                Title = "Introduction to Computer Science",
+                Description = "Fundamental concepts of computer science and programming",
+                CreditHours = 3,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new CourseTemplate
+            {
+                CourseNumber = "CS201",
+                Title = "Data Structures and Algorithms",
+                Description = "Advanced programming concepts and algorithm design",
+                CreditHours = 3,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new CourseTemplate
+            {
+                CourseNumber = "MATH201",
+                Title = "Calculus I",
+                Description = "Introduction to differential and integral calculus",
+                CreditHours = 4,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new CourseTemplate
+            {
+                CourseNumber = "ENG102",
+                Title = "Technical Writing",
+                Description = "Professional and technical communication skills",
+                CreditHours = 3,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new CourseTemplate
+            {
+                CourseNumber = "CS301",
+                Title = "Database Systems",
+                Description = "Database design, implementation, and management",
+                CreditHours = 3,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        context.CourseTemplates.AddRange(courseTemplates);
+        await context.SaveChangesAsync();
+
+        // Now add assessment templates for each course template
+        await SeedAssessmentTemplates(context, courseTemplates);
+    }
+
+    private static async Task SeedAssessmentTemplates(ApplicationDbContext context, List<CourseTemplate> courseTemplates)
+    {
+        var assessmentTemplates = new List<AssessmentTemplate>
+        {
+            // CS101 assessments
+            new AssessmentTemplate
+            {
+                Name = "Programming Assignment 1",
+                Description = "Basic programming fundamentals",
+                Type = AssessmentType.Assignment,
+                MaxPoints = 100,
+                DaysFromCourseStart = 30,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS101").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AssessmentTemplate
+            {
+                Name = "Midterm Exam",
+                Description = "Comprehensive midterm examination",
+                Type = AssessmentType.Exam,
+                MaxPoints = 100,
+                DaysFromCourseStart = 45,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS101").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AssessmentTemplate
+            {
+                Name = "Final Project",
+                Description = "Capstone programming project",
+                Type = AssessmentType.Project,
+                MaxPoints = 100,
+                DaysFromCourseStart = 100,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS101").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+
+            // CS201 assessments
+            new AssessmentTemplate
+            {
+                Name = "Algorithm Analysis Project",
+                Description = "Analyze time and space complexity of algorithms",
+                Type = AssessmentType.Project,
+                MaxPoints = 100,
+                DaysFromCourseStart = 21,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS201").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AssessmentTemplate
+            {
+                Name = "Data Structures Quiz",
+                Description = "Quiz on trees, graphs, and hash tables",
+                Type = AssessmentType.Quiz,
+                MaxPoints = 50,
+                DaysFromCourseStart = 35,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS201").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AssessmentTemplate
+            {
+                Name = "Midterm Exam",
+                Description = "Comprehensive exam covering all topics so far",
+                Type = AssessmentType.Exam,
+                MaxPoints = 100,
+                DaysFromCourseStart = 50,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "CS201").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+
+            // MATH201 assessments
+            new AssessmentTemplate
+            {
+                Name = "Quiz 1 - Limits",
+                Description = "Understanding limits and continuity",
+                Type = AssessmentType.Quiz,
+                MaxPoints = 100,
+                DaysFromCourseStart = 20,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "MATH201").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new AssessmentTemplate
+            {
+                Name = "Midterm Exam",
+                Description = "Derivatives and applications",
+                Type = AssessmentType.Exam,
+                MaxPoints = 100,
+                DaysFromCourseStart = 55,
+                CourseTemplateId = courseTemplates.First(c => c.CourseNumber == "MATH201").Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }
+        };
+
+        context.AssessmentTemplates.AddRange(assessmentTemplates);
+        await context.SaveChangesAsync();
     }
 }

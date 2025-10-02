@@ -13,7 +13,7 @@
                     <h1 class="display-4">
                         <i class="fas fa-plus-circle me-3"></i>Create New Course
                     </h1>
-                    <p class="lead text-muted">Add a new course to the academic system</p>
+                    <p class="lead text-muted">Add a new course to your academic plan</p>
                 </div>
                 <div class="col-md-4 text-md-end">
                     <a asp-action="Index" class="btn btn-outline-secondary">
@@ -26,14 +26,92 @@
 
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow-sm">
+            <div class="col-lg-10">
+                <!-- Course Template Selection Card -->
+                <div class="card shadow-sm mb-4">
                     <div class="card-header bg-primary text-white">
                         <h5 class="card-title mb-0">
-                            <i class="fas fa-book me-2"></i>Course Information
+                            <i class="fas fa-template me-2"></i>Quick Course Creation
                         </h5>
                     </div>
                     <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Quick Start:</strong> Select a course template to automatically create a course with predefined assessments and structure.
+                        </div>
+                        
+                        <form asp-action="CreateFromTemplate" id="templateForm">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-book me-1"></i>Course Template
+                                    </label>
+                                    <select name="courseTemplateId" class="form-select" id="courseTemplateSelect">
+                                        <option value="">-- Select Course Template --</option>
+                                        @foreach (var template in (ViewBag.CourseTemplates as SelectList)!)
+                                        {
+                                            <option value="@template.Value">@template.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3 mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="fas fa-calendar me-1"></i>Term
+                                    </label>
+                                    <select name="termId" class="form-select" asp-items="ViewBag.TermId">
+                                        <option value="">-- Select Term --</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label fw-bold">Start Date</label>
+                                    <input name="startDate" type="date" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                </div>
+                                
+                                <div class="col-md-2 mb-3">
+                                    <label class="form-label fw-bold">End Date</label>
+                                    <input name="endDate" type="date" class="form-control" value="@DateTime.Today.AddDays(120).ToString("yyyy-MM-dd")" />
+                                </div>
+                                
+                                <div class="col-md-1 mb-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-success w-100" id="createFromTemplateBtn" disabled>
+                                        <i class="fas fa-magic"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <!-- Template Preview Area -->
+                        <div id="templatePreview" class="mt-3" style="display: none;">
+                            <div class="card border-info">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-eye me-2"></i>Template Preview
+                                    </h6>
+                                </div>
+                                <div class="card-body" id="templatePreviewContent">
+                                    <!-- Content will be loaded via AJAX -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OR Divider -->
+                <div class="text-center my-4">
+                    <span class="badge bg-secondary fs-6 px-3 py-2">OR</span>
+                </div>
+
+                <!-- Manual Course Creation Card -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-edit me-2"></i>Manual Course Creation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Your existing manual course creation form here -->
                         <form asp-action="Create" id="courseCreateForm">
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                             
@@ -152,6 +230,47 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('courseTemplateSelect');
+    const createBtn = document.getElementById('createFromTemplateBtn');
+    const preview = document.getElementById('templatePreview');
+    
+    templateSelect.addEventListener('change', function() {
+        const templateId = this.value;
+        createBtn.disabled = !templateId;
+        
+        if (templateId) {
+            // Load template preview via AJAX
+            fetch(`/api/course-templates/${templateId}/preview`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('templatePreviewContent').innerHTML = `
+                        <h6>${data.courseNumber} - ${data.title}</h6>
+                        <p class="text-muted">${data.description}</p>
+                        <p><strong>Credit Hours:</strong> ${data.creditHours}</p>
+                        <p><strong>Included Assessments (${data.assessments.length}):</strong></p>
+                        <ul class="list-group list-group-flush">
+                            ${data.assessments.map(a => `
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>${a.name} (${a.type})</span>
+                                    <span class="badge bg-primary">${a.maxPoints} pts</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
+                    preview.style.display = 'block';
+                })
+                .catch(() => {
+                    preview.style.display = 'none';
+                });
+        } else {
+            preview.style.display = 'none';
+        }
+    });
+});
+</script>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

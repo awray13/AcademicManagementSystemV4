@@ -172,10 +172,11 @@ public class TermsController : Controller
         var term = await _context.Terms
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == user.Id);
 
-        if (term == null)
+        if (term != null)
         {
-            _logger.LogWarning("User {UserId} attempted to edit term {TermId} they don't own", user.Id, id);
-            return NotFound();
+            // Load course count separately
+            ViewBag.CourseCount = await _context.Courses
+                .CountAsync(c => c.TermId == term.Id);
         }
 
         return View(term);

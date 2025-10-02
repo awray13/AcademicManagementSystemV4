@@ -6,7 +6,7 @@ using AcademicManagementSystemV4.Services;
 
 namespace AcademicManagementSystemV4.Services;
 
-public class ReportService : IReportService
+public class ReportService : IReportService // <- INTERFACE INHERITANCE
 {
     private readonly ApplicationDbContext _context;
 
