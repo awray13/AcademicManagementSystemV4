@@ -69,7 +69,9 @@ JS --> C
 VAL --> VM
 
 ### Data Flow Architecture
-```sequenceDiagram participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
+```
+sequenceDiagram 
+participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
 
 U->>C: Request (Create Term)
 C->>C: Validate User Auth
