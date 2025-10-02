@@ -33,6 +33,14 @@ The Academic Management System provides a streamlined platform for students and 
 ## 🏗️ Architecture & Design
 
 ### System Architecture
+graph TB 
+
+subgraph "Presentation Layer" 
+    V["Razor Pages/Views"] 
+    C["Controllers"] 
+    JS["JavaScript/jQuery"] 
+end
+
 subgraph "Business Logic Layer"
     S[Services]
     VM[ViewModels]
@@ -61,6 +69,7 @@ JS --> C
 VAL --> VM
 
 ### Data Flow Architecture
+sequenceDiagram participant U as User participant C as Controller participant S as Service participant EF as Entity Framework participant DB as Database
 U->>C: Request (Create Term)
 C->>C: Validate User Auth
 C->>S: Process Business Logic
@@ -73,6 +82,7 @@ S-->>C: Return ViewModel
 C-->>U: Return View/Redirect
 
 ### Domain Model
+classDiagram class ApplicationUser { +string FirstName +string LastName +string TimeZone +DateTime CreatedAt +DateTime? LastLoginAt +bool IsProfileComplete +string FullName +string Initials +ICollection~Term~ Terms +UpdateLastLogin() +CompleteProfile() +HasCompleteProfile() bool }
 class BaseEntity {
     <<abstract>>
     +int Id
@@ -204,13 +214,16 @@ Assessment --> AssessmentStatus
 ### Installation & Setup
 
 1. **Clone the repository**
+1. ```git clone https://github.com/awray13/AcademicManagementSystemV4.git cd AcademicManagementSystemV4```
 2. **Restore NuGet packages**
+1. ```dotnet restore```
 3. **Update database connection** (Optional)
 - Edit `appsettings.json` to modify the connection string if needed
 - Default uses SQLite with local file storage
-
 4. **Apply database migrations**
+1. ```dotnet ef database update```
 5. **Run the application**
+1. ```dotnet run```
 6. **Access the application**
 - Navigate to `https://localhost:7243` (or the port shown in terminal)
 - Use demo credentials:
@@ -218,7 +231,7 @@ Assessment --> AssessmentStatus
   - **Staff**: `advisor@wgu.edu` / `Password123!`
 
 ## 📁 Project Structure
-```AcademicManagementSystemV4/ ├── Controllers/           # MVC controllers for handling requests │   ├── AccountController.cs │   ├── CoursesController.cs │   └── TermsController.cs ├── Data/                 # Database context and configurations │   ├── ApplicationDbContext.cs │   ├── Migrations/ │   └── SeedData.cs ├── Models/               # Data models and view models │   ├── ApplicationUser.cs │   ├── Assessment.cs │   ├── Course.cs │   ├── Term.cs │   └── ViewModels/ ├── Services/             # Business logic services │   └── CourseTemplateService.cs ├── Views/               # Razor pages and layouts │   ├── Account/ │   ├── Courses/ │   ├── Terms/ │   └── Shared/ ├── wwwroot/             # Static files │   ├── css/ │   ├── js/ │   └── lib/ ├── Program.cs           # Application entry point └── appsettings.json     # Configuration settings```
+AcademicManagementSystemV4/ ├── Controllers/           # MVC controllers for handling requests │   ├── AccountController.cs │   ├── CoursesController.cs │   └── TermsController.cs ├── Data/                 # Database context and configurations │   ├── ApplicationDbContext.cs │   ├── Migrations/ │   └── SeedData.cs ├── Models/               # Data models and view models │   ├── ApplicationUser.cs │   ├── Assessment.cs │   ├── Course.cs │   ├── Term.cs │   └── ViewModels/ ├── Services/             # Business logic services │   └── CourseTemplateService.cs ├── Views/               # Razor pages and layouts │   ├── Account/ │   ├── Courses/ │   ├── Terms/ │   └── Shared/ ├── wwwroot/             # Static files │   ├── css/ │   ├── js/ │   └── lib/ ├── Program.cs           # Application entry point └── appsettings.json     # Configuration settings
 
 ## 🔧 Configuration
 
@@ -226,7 +239,7 @@ Assessment --> AssessmentStatus
 
 The application uses SQLite by default with the following connection string:
 
-{ "ConnectionStrings": { "DefaultConnection": "Data Source=academic_management.db" } }
+```{ "ConnectionStrings": { "DefaultConnection": "Data Source=academic_management.db" } }```
 
 ### Identity Configuration
 
@@ -278,6 +291,9 @@ The application includes comprehensive seed data:
 
 ## 🧪 Testing
 
+### Running Tests
+```dotnet test```
+
 ### Test Coverage
 - Unit tests for business logic
 - Integration tests for controllers
@@ -289,6 +305,10 @@ The application includes comprehensive seed data:
 ```dotnet run --environment Development```
 ### Production
 ```dotnet publish -c Release -o ./publish```
+
+### Docker Support
+```FROM mcr.microsoft.com/dotnet/aspnet:9.0 COPY bin/Release/net9.0/publish/ App/ WORKDIR /App ENTRYPOINT ["dotnet", "AcademicManagementSystemV4.dll"]```
+
 
 ## 🤝 Contributing
 
