@@ -93,7 +93,7 @@ sequenceDiagram
 ```
 
 ### Domain Model
-
+```mermaid
 classDiagram
     class ApplicationUser { 
         +string FirstName 
@@ -214,6 +214,7 @@ classDiagram
     Course --> CourseStatus : uses
     Assessment --> AssessmentType : uses
     Assessment --> AssessmentStatus : uses
+```
 
 ## 🛠️ Technology Stack
 
