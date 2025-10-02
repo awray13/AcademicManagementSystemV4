@@ -94,7 +94,6 @@ sequenceDiagram
 
 ### Domain Model
 
-```mermaid
 classDiagram
     class ApplicationUser { 
         +string FirstName 
@@ -203,19 +202,18 @@ classDiagram
         Graded
     }
 
-    ApplicationUser ||--o{ Term : owns
-    Term ||--o{ Course : contains
-    Course ||--o{ Assessment : has
-    CourseTemplate ||--o{ AssessmentTemplate : defines
+    ApplicationUser "1" --> "*" Term : owns
+    Term "1" --> "*" Course : contains
+    Course "1" --> "*" Assessment : has
+    CourseTemplate "1" --> "*" AssessmentTemplate : defines
     BaseEntity <|-- Term
     BaseEntity <|-- Course
     BaseEntity <|-- Assessment
     BaseEntity <|-- CourseTemplate
     BaseEntity <|-- AssessmentTemplate
-    Course --> CourseStatus
-    Assessment --> AssessmentType
-    Assessment --> AssessmentStatus
-```
+    Course --> CourseStatus : uses
+    Assessment --> AssessmentType : uses
+    Assessment --> AssessmentStatus : uses
 
 ## 🛠️ Technology Stack
 
