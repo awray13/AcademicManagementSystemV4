@@ -86,7 +86,23 @@ C-->>U: Return View/Redirect
 ```
 
 ### Domain Model
-classDiagram class ApplicationUser { +string FirstName +string LastName +string TimeZone +DateTime CreatedAt +DateTime? LastLoginAt +bool IsProfileComplete +string FullName +string Initials +ICollection~Term~ Terms +UpdateLastLogin() +CompleteProfile() +HasCompleteProfile() bool }
+classDiagram
+
+class ApplicationUser { 
++string FirstName 
++string LastName
++string TimeZone 
++DateTime CreatedAt 
++DateTime? LastLoginAt 
++bool IsProfileComplete 
++string FullName 
++string Initials 
++ICollection~Term~ Terms 
++UpdateLastLogin() 
++CompleteProfile() 
++HasCompleteProfile() bool 
+}
+
 class BaseEntity {
     <<abstract>>
     +int Id
