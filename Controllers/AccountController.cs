@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using AcademicManagementSystemV4.Data;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace AcademicManagementSystemV4.Controllers;
@@ -18,17 +20,20 @@ public class AccountController : Controller
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly ILogger<AccountController> _logger;
+    private readonly ApplicationDbContext _context;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         RoleManager<IdentityRole> roleManager,
-        ILogger<AccountController> logger)
+        ILogger<AccountController> logger,
+        ApplicationDbContext context)
     {
         _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
         _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     /// <summary>
@@ -50,7 +55,8 @@ public class AccountController : Controller
 
     /// <summary>
     /// POST: Account/Register
-    /// Creates a new user account
+    /// Creates a new user account with Student role and redirects to dashboard
+    /// PURE C# IMPLEMENTATION - NO JAVASCRIPT REQUIRED
     /// </summary>
     [HttpPost]
     [AllowAnonymous]
@@ -61,12 +67,16 @@ public class AccountController : Controller
 
         if (!ModelState.IsValid)
         {
+            _logger.LogWarning("Registration attempt with invalid model state for email {Email}", model.Email ?? "Unknown");
             return View(model);
         }
 
         try
         {
-            // Check if user already exists
+            // Sanitize inputs
+            model.SanitizeInputs();
+
+            // Check for existing user
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
             {
@@ -74,45 +84,106 @@ public class AccountController : Controller
                 return View(model);
             }
 
+            // Create user
             var user = new ApplicationUser
             {
                 UserName = model.Email,
                 Email = model.Email,
-                FirstName = model.FirstName.Trim(),
-                LastName = model.LastName.Trim(),
-                CreatedAt = DateTime.UtcNow
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                PhoneNumber = model.PhoneNumber,
+                SubscribeToNewsletter = model.SubscribeToNewsletter,
+                CreatedAt = DateTime.UtcNow,
+                TimeZone = "UTC",
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                // Assign default role
+                _logger.LogInformation("User {Email} created successfully", model.Email);
+
+                // Assign Student role
+                if (!await _roleManager.RoleExistsAsync("Student"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Student"));
+                }
                 await _userManager.AddToRoleAsync(user, "Student");
 
-                _logger.LogInformation("User {Email} created account successfully", model.Email);
+                // Complete profile setup
+                user.CompleteProfile();
+                await _userManager.UpdateAsync(user);
+                
+                // Create starter data
+                await CreateStarterDataForNewUser(user);
 
                 // Sign in the user
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
+                // Set success message
                 TempData["Success"] = $"Welcome to Academic Management System, {user.FirstName}! Your account has been created successfully.";
 
-                return RedirectToLocal(returnUrl);
-            }
+                // For AJAX requests, return JSON success response
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { 
+                        success = true, 
+                        message = "Account created successfully!", 
+                        redirectUrl = Url.Action("Index", "Home"),
+                        firstName = user.FirstName 
+                    });
+                }
 
-            // Add registration errors to ModelState
-            foreach (var error in result.Errors)
+                // For regular form submissions, redirect to Home
+                return RedirectToAction("Index", "Home");
+            }
+            else
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred during user registration for email {Email}", model.Email);
-            ModelState.AddModelError(string.Empty, "An error occurred during registration. Please try again.");
+            _logger.LogError(ex, "Exception during registration for {Email}", model.Email);
+            ModelState.AddModelError(string.Empty, "An unexpected error occurred during registration. Please try again.");
         }
 
         return View(model);
+    }
+
+    /// <summary>
+    /// Creates basic starter data for a new user (optional starter term)
+    /// </summary>
+    private async Task CreateStarterDataForNewUser(ApplicationUser user)
+    {
+        try
+        {
+            // Create a "Getting Started" term for new users
+            var starterTerm = new Term
+            {
+                Name = "Getting Started",
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(6),
+                Description = "Welcome to Academic Management System! Create your first term and courses here.",
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Terms.Add(starterTerm);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Created starter term for new user {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create starter data for user {Email}", user.Email);
+            // Don't throw - this is optional and shouldn't prevent registration
+        }
     }
 
     /// <summary>
@@ -466,6 +537,42 @@ public class AccountController : Controller
         }
     }
 
+    /// <summary>
+    /// Test endpoint to verify database connectivity and user creation process
+    /// </summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> TestDb()
+    {
+        try
+        {
+            var userCount = await _userManager.Users.CountAsync();
+            var roleCount = await _roleManager.Roles.CountAsync();
+            
+            return Json(new 
+            { 
+                success = true,
+                userCount = userCount,
+                roleCount = roleCount,
+                connectionString = "Connected",
+                timestamp = DateTime.UtcNow,
+                identityOptions = new {
+                    passwordRequireDigit = true,
+                    passwordRequiredLength = 6
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new 
+            { 
+                success = false,
+                error = ex.Message,
+                innerError = ex.InnerException?.Message
+            });
+        }
+    }
+
     #region Private Helper Methods
 
     /// <summary>
@@ -479,6 +586,11 @@ public class AccountController : Controller
         }
         else
         {
+            // Redirect authenticated users to the dashboard (Home/Index)
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return RedirectToAction("Index", "Home");
         }
     }

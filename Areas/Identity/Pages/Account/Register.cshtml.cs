@@ -40,66 +40,56 @@ namespace AcademicManagementSystemV4.Areas.Identity.Pages.Account
         {
             _userManager = userManager;
             _userStore = userStore;
-            _emailStore = (IUserEmailStore<ApplicationUser>)GetEmailStore();
+            _emailStore = GetEmailStore();
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
         }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         [BindProperty]
         public InputModel Input { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public string ReturnUrl { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public class InputModel
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
             public string Email { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
+            [Required]
+            [StringLength(50, MinimumLength = 1)]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [StringLength(50, MinimumLength = 1)]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
             [Required]
             [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
             [DataType(DataType.Password)]
             [Display(Name = "Password")]
             public string Password { get; set; }
 
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
             [DataType(DataType.Password)]
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
-        }
 
+            [Phone]
+            [Display(Name = "Phone Number (Optional)")]
+            public string PhoneNumber { get; set; }
+
+            [Required]
+            [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to the terms and conditions.")]
+            [Display(Name = "I agree to the Terms and Conditions")]
+            public bool AgreeToTerms { get; set; }
+        }
 
         public async Task OnGetAsync(string returnUrl = null)
         {
@@ -111,20 +101,39 @@ namespace AcademicManagementSystemV4.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
             if (ModelState.IsValid)
             {
-                var user = CreateUser();
+                // Create ApplicationUser with all required properties
+                var user = new ApplicationUser
+                {
+                    UserName = Input.Email.Trim().ToLowerInvariant(),
+                    Email = Input.Email.Trim().ToLowerInvariant(),
+                    EmailConfirmed = false, // Set based on your requirements
+                    FirstName = Input.FirstName.Trim(),
+                    LastName = Input.LastName.Trim(),
+                    PhoneNumber = Input.PhoneNumber?.Trim(),
+                    CreatedAt = DateTime.UtcNow
+                };
 
-                await _userStore.SetUserNameAsync((ApplicationUser)user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync((ApplicationUser)user, Input.Email, CancellationToken.None);
-                var result = await _userManager.CreateAsync((ApplicationUser)user, Input.Password);
+                var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    var userId = await _userManager.GetUserIdAsync((ApplicationUser)user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync((ApplicationUser)user);
+                    // Assign default role
+                    try
+                    {
+                        await _userManager.AddToRoleAsync(user, "Student");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to assign Student role to user {Email}", user.Email);
+                    }
+
+                    var userId = await _userManager.GetUserIdAsync(user);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(
                         "/Account/ConfirmEmail",
@@ -141,10 +150,24 @@ namespace AcademicManagementSystemV4.Areas.Identity.Pages.Account
                     }
                     else
                     {
-                        await _signInManager.SignInAsync((ApplicationUser)user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        // Sign in the user and redirect to dashboard
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+
+                        // Add success message
+                        TempData["Success"] = $"Welcome to Academic Management System, {user.FirstName}! Your account has been created successfully.";
+
+                        // Redirect to dashboard (Home/Index)
+                        if (Url.IsLocalUrl(returnUrl))
+                        {
+                            return LocalRedirect(returnUrl);
+                        }
+                        else
+                        {
+                            return RedirectToAction("Index", "Home");
+                        }
                     }
                 }
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -155,27 +178,27 @@ namespace AcademicManagementSystemV4.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private IdentityUser CreateUser()
+        private ApplicationUser CreateUser()
         {
             try
             {
-                return Activator.CreateInstance<IdentityUser>();
+                return Activator.CreateInstance<ApplicationUser>();
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<ApplicationUser> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<ApplicationUser>)_userStore;
         }
     }
 }

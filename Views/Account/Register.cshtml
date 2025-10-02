@@ -7,14 +7,14 @@
 
 <div class="register-container">
     <!-- Header Section -->
-    <div class="register-header">
+    <div class="register-header bg-primary text-white py-4 mb-4">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
                     <h1 class="display-4">
                         <i class="fas fa-user-plus me-3"></i>Create Your Account
                     </h1>
-                    <p class="lead text-light">
+                    <p class="lead">
                         Join our Academic Management System to track your academic progress
                     </p>
                 </div>
@@ -37,136 +37,152 @@
                         </h5>
                     </div>
                     <div class="card-body">
+                        <!-- Display validation summary -->
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        
+                        <!-- Registration Form -->
                         <form asp-action="Register" method="post" id="registerForm">
-                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                             
                             <!-- Personal Information Section -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <h6 class="text-success border-bottom pb-2 mb-3">
-                                        <i class="fas fa-user me-2"></i>Personal Information
-                                    </h6>
-                                </div>
+                            <fieldset class="mb-4">
+                                <legend class="h6 text-success border-bottom pb-2 mb-3">
+                                    <i class="fas fa-user me-2"></i>Personal Information
+                                </legend>
                                 
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="FirstName" class="form-label">
-                                        <i class="fas fa-user me-1"></i>First Name *
-                                    </label>
-                                    <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
-                                    <span asp-validation-for="FirstName" class="text-danger small"></span>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="LastName" class="form-label">
-                                        <i class="fas fa-user me-1"></i>Last Name *
-                                    </label>
-                                    <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
-                                    <span asp-validation-for="LastName" class="text-danger small"></span>
-                                </div>
-                                
-                                <div class="col-md-8 mb-3">
-                                    <label asp-for="Email" class="form-label">
-                                        <i class="fas fa-envelope me-1"></i>Email Address *
-                                    </label>
-                                    <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
-                                    <span asp-validation-for="Email" class="text-danger small"></span>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>We accept educational (.edu) and major email providers
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="FirstName" class="form-label">
+                                            <i class="fas fa-user me-1"></i>First Name *
+                                        </label>
+                                        <input asp-for="FirstName" class="form-control" placeholder="Enter your first name" />
+                                        <span asp-validation-for="FirstName" class="text-danger small"></span>
                                     </div>
-                                    <div id="email-availability" class="mt-1" style="display: none;">
-                                        <small class="text-muted">Checking availability...</small>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="LastName" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Last Name *
+                                        </label>
+                                        <input asp-for="LastName" class="form-control" placeholder="Enter your last name" />
+                                        <span asp-validation-for="LastName" class="text-danger small"></span>
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
-                                    <label asp-for="PhoneNumber" class="form-label">
-                                        <i class="fas fa-phone me-1"></i>Phone Number
-                                    </label>
-                                    <input asp-for="PhoneNumber" class="form-control" placeholder="(Optional)" />
-                                    <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                <div class="row">
+                                    <div class="col-md-8 mb-3">
+                                        <label asp-for="Email" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email Address *
+                                        </label>
+                                        <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
+                                        <span asp-validation-for="Email" class="text-danger small"></span>
+                                        <div id="email-availability" class="mt-1" style="display: none;"></div>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>We accept educational (.edu) and major email providers
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-4 mb-3">
+                                        <label asp-for="PhoneNumber" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Phone Number
+                                        </label>
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="(Optional)" />
+                                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                                    </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <!-- Password Section -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <h6 class="text-success border-bottom pb-2 mb-3">
-                                        <i class="fas fa-lock me-2"></i>Password & Security
-                                    </h6>
-                                </div>
+                            <fieldset class="mb-4">
+                                <legend class="h6 text-success border-bottom pb-2 mb-3">
+                                    <i class="fas fa-lock me-2"></i>Password & Security
+                                </legend>
                                 
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="Password" class="form-label">
-                                        <i class="fas fa-key me-1"></i>Password *
-                                    </label>
-                                    <div class="input-group">
-                                        <input asp-for="Password" class="form-control" placeholder="Create a strong password" />
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('Password')">
-                                            <i class="fas fa-eye" id="Password-icon"></i>
-                                        </button>
-                                    </div>
-                                    <span asp-validation-for="Password" class="text-danger small"></span>
-                                    
-                                    <!-- Password Strength Indicator -->
-                                    <div class="mt-2">
-                                        <div class="progress" style="height: 5px;">
-                                            <div class="progress-bar" id="password-strength" role="progressbar" style="width: 0%"></div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="Password" class="form-label">
+                                            <i class="fas fa-key me-1"></i>Password *
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="Password" type="password" class="form-control" placeholder="Create a strong password" />
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('Password')">
+                                                <i class="fas fa-eye" id="Password-toggle-icon"></i>
+                                            </button>
                                         </div>
-                                        <small class="text-muted" id="password-strength-text">Password strength will appear here</small>
+                                        <span asp-validation-for="Password" class="text-danger small"></span>
+                                        
+                                        <!-- Client-side password strength indicator -->
+                                        <div class="mt-2">
+                                            <div class="progress" style="height: 5px;">
+                                                <div id="password-strength" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                            <small id="password-strength-text" class="text-muted">Password strength will appear here</small>
+                                        </div>
+                                        
+                                        <!-- Server-side password strength indicator (fallback) -->
+                                        @if (!string.IsNullOrEmpty(Model.Password))
+                                        {
+                                            var strength = Model.PasswordStrengthLevel;
+                                            var strengthClass = strength switch
+                                            {
+                                                PasswordStrength.Strong => "success",
+                                                PasswordStrength.Good => "info", 
+                                                PasswordStrength.Fair => "warning",
+                                                _ => "danger"
+                                            };
+                                            
+                                            <div class="mt-2">
+                                                <div class="progress" style="height: 5px;">
+                                                    <div class="progress-bar bg-@strengthClass" role="progressbar" 
+                                                         style="width: @((int)strength * 25)%"></div>
+                                                </div>
+                                                <small class="text-@strengthClass">Password strength: @strength</small>
+                                            </div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label asp-for="ConfirmPassword" class="form-label">
+                                            <i class="fas fa-check-double me-1"></i>Confirm Password *
+                                        </label>
+                                        <div class="input-group">
+                                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm your password" />
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility('ConfirmPassword')">
+                                                <i class="fas fa-eye" id="ConfirmPassword-toggle-icon"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                                        <div id="password-match" class="mt-1" style="display: none;"></div>
                                     </div>
                                 </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="ConfirmPassword" class="form-label">
-                                        <i class="fas fa-check-double me-1"></i>Confirm Password *
-                                    </label>
-                                    <div class="input-group">
-                                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" />
-                                        <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('ConfirmPassword')">
-                                            <i class="fas fa-eye" id="ConfirmPassword-icon"></i>
-                                        </button>
-                                    </div>
-                                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                                    <div id="password-match" class="mt-1" style="display: none;">
-                                        <small></small>
-                                    </div>
-                                </div>
-                            </div>
+                            </fieldset>
 
                             <!-- Password Requirements -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="alert alert-info">
-                                        <h6><i class="fas fa-shield-alt me-2"></i>Password Requirements:</h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <ul class="mb-0 small">
-                                                    <li id="req-length">At least 8 characters</li>
-                                                    <li id="req-uppercase">One uppercase letter</li>
-                                                    <li id="req-lowercase">One lowercase letter</li>
-                                                </ul>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <ul class="mb-0 small">
-                                                    <li id="req-number">One number</li>
-                                                    <li id="req-special">One special character</li>
-                                                    <li id="req-different">Different from personal info</li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                            <div class="alert alert-info mb-4">
+                                <h6><i class="fas fa-shield-alt me-2"></i>Password Requirements:</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul class="mb-0 small">
+                                            <li id="req-length" class="text-muted">At least 8 characters</li>
+                                            <li id="req-uppercase" class="text-muted">One uppercase letter</li>
+                                            <li id="req-lowercase" class="text-muted">One lowercase letter</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="mb-0 small">
+                                            <li id="req-number" class="text-muted">One number</li>
+                                            <li id="req-special" class="text-muted">One special character</li>
+                                            <li class="text-muted">Different from personal info</li>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Terms and Preferences -->
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <h6 class="text-success border-bottom pb-2 mb-3">
-                                        <i class="fas fa-cog me-2"></i>Terms & Preferences
-                                    </h6>
-                                </div>
+                            <fieldset class="mb-4">
+                                <legend class="h6 text-success border-bottom pb-2 mb-3">
+                                    <i class="fas fa-cog me-2"></i>Terms & Preferences
+                                </legend>
                                 
-                                <div class="col-12 mb-3">
+                                <div class="mb-3">
                                     <div class="form-check">
                                         <input asp-for="AgreeToTerms" class="form-check-input" />
                                         <label asp-for="AgreeToTerms" class="form-check-label">
@@ -176,7 +192,7 @@
                                     <span asp-validation-for="AgreeToTerms" class="text-danger small"></span>
                                 </div>
                                 
-                                <div class="col-12 mb-3">
+                                <div class="mb-3">
                                     <div class="form-check">
                                         <input asp-for="SubscribeToNewsletter" class="form-check-input" />
                                         <label asp-for="SubscribeToNewsletter" class="form-check-label">
@@ -184,7 +200,7 @@
                                         </label>
                                     </div>
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <!-- Hidden Fields -->
                             <input type="hidden" asp-for="ReturnUrl" />
@@ -196,7 +212,7 @@
                                         <i class="fas fa-sign-in-alt me-2"></i>Already have an account?
                                     </a>
                                 </div>
-                                <button type="submit" class="btn btn-success btn-lg" id="registerBtn">
+                                <button type="submit" id="registerBtn" class="btn btn-success btn-lg">
                                     <i class="fas fa-user-plus me-2"></i>Create Account
                                 </button>
                             </div>
@@ -208,6 +224,17 @@
     </div>
 </div>
 
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-content">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-white">Creating your account...</p>
+    </div>
+</div>
+
+<!-- Keep the modals for terms and privacy -->
 <!-- Terms Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -268,9 +295,10 @@
     </div>
 </div>
 
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/account/register.js" asp-append-version="true"></script>
+    <script src="~/js/account/register.js"></script>
 }
 
 @section Styles {

@@ -31,47 +31,66 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
+    // Authentication settings
     options.SignIn.RequireConfirmedAccount = false;
+    
+    // Password settings - MATCH RegisterViewModel requirements
     options.Password.RequireDigit = true;
-    options.Password.RequiredLength = 6;
+    options.Password.RequiredLength = 8; // Changed from 6 to 8
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredUniqueChars = 1;
+    
+    // User settings
+    options.User.AllowedUserNameCharacters = 
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+    
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure application cookie with strict session-based settings
+// Configure application cookie with better session management
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
 
-    // Force session-based authentication - cookies expire when browser closes
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30); // Session timeout
-    options.SlidingExpiration = false; // Don't extend session automatically
+    // Improved session management
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); // Longer session timeout
+    options.SlidingExpiration = true; // Enable sliding expiration
     options.Cookie.IsEssential = true;
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     options.Cookie.SameSite = SameSiteMode.Lax;
 
-    // Critical: Don't persist cookies across browser sessions
-    options.Cookie.MaxAge = null; // No max age - session cookie only
-    options.Cookie.Expiration = null; // No persistent expiration
+    // Allow persistent cookies when RememberMe is selected
+    options.Cookie.MaxAge = null; // Session cookie by default
 
     // Security settings
     options.ReturnUrlParameter = "returnUrl";
     options.Events.OnRedirectToLogin = context =>
     {
-        // Clear any existing authentication state
-        context.HttpContext.Session.Clear();
+        // Only clear session if user is not authenticated
+        if (!context.HttpContext.User.Identity.IsAuthenticated)
+        {
+            context.HttpContext.Session.Clear();
+        }
         context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };
 });
 
-// Add session services for better session management
+// Update session timeout to match cookie timeout
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(5);
+    options.IdleTimeout = TimeSpan.FromMinutes(60); // Match cookie timeout
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
@@ -116,6 +135,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+// Update your routing configuration
+app.MapControllerRoute(
+    name: "account",
+    pattern: "Account/{action=Login}/{id?}",
+    defaults: new { controller = "Account" });
+
+// Add specific route for registration to override Identity pages
+app.MapControllerRoute(
+    name: "register",
+    pattern: "Register",
+    defaults: new { controller = "Account", action = "Register" });
 
 app.MapControllerRoute(
     name: "default",

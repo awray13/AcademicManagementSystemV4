@@ -145,10 +145,10 @@ public class RegisterViewModel : IValidatableObject
     }
 
     /// <summary>
-    /// Calculates password strength based on complexity
+    /// Calculates password strength based on complexity (public method for server-side use)
     /// </summary>
     /// <returns>Password strength level</returns>
-    private PasswordStrength CalculatePasswordStrength()
+    public PasswordStrength CalculatePasswordStrength()
     {
         if (string.IsNullOrWhiteSpace(Password))
             return PasswordStrength.None;
@@ -156,28 +156,19 @@ public class RegisterViewModel : IValidatableObject
         var score = 0;
 
         // Length scoring
-        if (Password.Length >= 8)
-            score += 1;
-        if (Password.Length >= 12)
-            score += 1;
-        if (Password.Length >= 16)
-            score += 1;
+        if (Password.Length >= 8) score += 1;
+        if (Password.Length >= 12) score += 1;
+        if (Password.Length >= 16) score += 1;
 
         // Character variety scoring
-        if (Regex.IsMatch(Password, @"[a-z]"))
-            score += 1;
-        if (Regex.IsMatch(Password, @"[A-Z]"))
-            score += 1;
-        if (Regex.IsMatch(Password, @"\d"))
-            score += 1;
-        if (Regex.IsMatch(Password, @"[^\da-zA-Z]"))
-            score += 1;
+        if (Regex.IsMatch(Password, @"[a-z]")) score += 1;
+        if (Regex.IsMatch(Password, @"[A-Z]")) score += 1;
+        if (Regex.IsMatch(Password, @"\d")) score += 1;
+        if (Regex.IsMatch(Password, @"[^\da-zA-Z]")) score += 1;
 
         // Complexity patterns
-        if (Regex.IsMatch(Password, @"(.)\1{2,}"))
-            score -= 1; // Repeated characters
-        if (Regex.IsMatch(Password, @"123|abc|qwe", RegexOptions.IgnoreCase))
-            score -= 1; // Common patterns
+        if (Regex.IsMatch(Password, @"(.)\1{2,}")) score -= 1; // Repeated characters
+        if (Regex.IsMatch(Password, @"123|abc|qwe", RegexOptions.IgnoreCase)) score -= 1; // Common patterns
 
         return score switch
         {
