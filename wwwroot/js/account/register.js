@@ -374,10 +374,14 @@ $(function () {
             type: 'POST',
             data: $(this).serialize(),
             success: function(response) {
-                console.log('Registration successful');
+                console.log('Registration response received:', response);
                 
-                // Check if response contains success indicator
-                if (response.includes('Welcome') || response.includes('success')) {
+                // Check if it's a JSON response with success indicator
+                if (typeof response === 'object' && response.success) {
+                    console.log('Registration successful');
+                    showSuccessAndRedirect(response.message, response.firstName);
+                } else if (typeof response === 'string' && (response.includes('Welcome') || response.includes('success'))) {
+                    // Fallback for HTML responses
                     const firstName = $('#FirstName').val();
                     showSuccessAndRedirect('Your account has been created successfully!', firstName);
                 } else {
